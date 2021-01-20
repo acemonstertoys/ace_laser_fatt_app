@@ -1,15 +1,14 @@
 from datetime import datetime
 from enum import Enum
-from getrfids import *
 from guizero import App, Box, Text, PushButton
-from laser import *
+from sessionManager import Auth_Result, SessionManager
 
 # Contant Color Values
 MAIN_COLOR = "#3636B2"
 FILTER_COLOR = "#222270"
 UNAUTH_COLOR = "#8F009B"
 UNAUTH_FILTER_COLOR = "#5B2262"
-SIDE_COLOR = "#64BAE7"
+SIDE_COLOR = "#63BBE8"
 SIDE_ALERT_COLOR = "#E5008A"
 CHANGE_FILTER_COLOR = "#64BAE7"
 
@@ -21,8 +20,8 @@ class UIStates(Enum):
     CHANGE_FILTER =3
 
 taggedFob = ""
-currentUIstate = UIStates.WAITING 
-currentLoginUser = ""
+currentUIstate = UIStates.WAITING
+sessionManager = SessionManager()
 
 # Functions -----------
 def updateTime():
@@ -30,6 +29,11 @@ def updateTime():
     format = "%A, %B %d, %Y | %I:%M%p"
     nowStr = now.strftime(format)
     dateTimeText.value = nowStr
+
+def updateFilterData():
+    data = sessionManager.currentFilterData()
+    filterTypeText.value = data[0]
+    filterTimeText.value = str(data[1]) + ' Min.'
 
 def handleFobTag(event_data):
     #print("handleFobTag()...")
@@ -40,20 +44,22 @@ def handleFobTag(event_data):
         fobNum = int(taggedFob)
         fobHex = hex(fobNum).upper().lstrip("0X").zfill(8)
         print("Fob = "+ fobHex)
-        
-        if fobHex == currentLoginUser:
-            #log out existing user
-            currentLoginUser = ""
-            setUpWaiting()
-        elif fobHex in authorized_rfids:
-            #log in certified user
-            print("ID: {} Authorized: {}".format(fobHex, True))
-            currentLoginUser = fobHex
-            setUpCertified(fobHex)
-        else:
-            #log uncertified user
+
+        result = sessionManager.authenticate_credential(fobHex)
+        if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
+        elif result == Auth_Result.AUTHENTICATED:
+            print("ID: {} Authorized: {}".format(fobHex, True))
+            setUpCertified(fobHex)
+        elif result == Auth_Result.LOGGED_OUT:
+            setUpWaiting()
+        elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
+            print("Another user is logged in!!!")
+            #TODO communicate to the user
+        else:
+            print("Some sort of error!!!")
+            #TODO communicate error to the user
         # clear out tagged capture 
         taggedFob = ""
     else:
@@ -80,7 +86,6 @@ def setUpUncertified(userName):
     print("setting up Uncertified...")
     currentUIstate = UIStates.UNCERTIFIED
     app.bg = UNAUTH_COLOR
-    filterStatusBox.bg = UNAUTH_FILTER_COLOR
     welcomeBox.visible = False
     noCertBox.visible = True
     app.after(7000, setUpWaiting)
@@ -88,8 +93,8 @@ def setUpUncertified(userName):
 def setUpCertified(userName):
     print("setting up Certified...")
     currentUIstate = UIStates.CERTIFIED
+    feesBox.bg = SIDE_COLOR
     feesBox.visible = True
-    app.bg = MAIN_COLOR
     welcomeBox.visible = False
     odoBox.visible = True
 
@@ -104,12 +109,8 @@ app.font="DejaVu Serif"
 app.text_color="white"
 app.when_key_pressed = handleFobTag
 
-# Additional Set Up
-authorized_rfids = load_whitelist()
-
 # Operator Information: side bar
-feesBox = Box(app, width=290, height="fill", align="right", visible=False)
-feesBox.bg = SIDE_COLOR
+feesBox = Box(app, width=290, height="fill", align="right", visible=False, border=True)
 feesBox.text_size=16
 Text(feesBox, text="Operator Information")
 Text(feesBox, text= "February Fees: $4.56")
@@ -131,9 +132,10 @@ filterStatusBox.bg = FILTER_COLOR
 filterStatusBox.text_size=24
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
 Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
-currentFilter = Text(filterStatusBox, text="Organics", grid=[1,1])
+filterTypeText = Text(filterStatusBox, text="", grid=[1,1])
 Text(filterStatusBox, text="Filter Time Left: ", grid=[0,2], align="left")
-filterTime = Text(filterStatusBox, text="83 Min.", grid=[1,2], align="left")
+filterTimeText = Text(filterStatusBox, text="", grid=[1,2], align="left")
+updateFilterData()
 
 # Welcome Box for the WAITING state
 welcomeBox = Box(app, align="top", width="fill")
@@ -143,6 +145,7 @@ Text(welcomeBox, text="Tap your fob to begin", size=36)
 
 # UNCERTIFIED State
 noCertBox = Box(app, align="top", width="fill", visible=False)
+noCertBox.bg = UNAUTH_COLOR
 Box(noCertBox, width="fill", height=60) # spacer
 Text(noCertBox, text="Hello [Name]", size=48)
 Text(noCertBox, text="You do not have a laser certification", size=18)
