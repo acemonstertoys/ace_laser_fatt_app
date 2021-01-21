@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from guizero import App, Box, Text, PushButton
+from guizero import App, Box, Picture, PushButton, Text
 from sessionManager import Auth_Result, SessionManager
 
 # Contant Color Values
@@ -77,7 +77,7 @@ def setUpWaiting():
     print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
-    feesBox.visible = False
+    sideBar.visible = False
     odoBox.visible = False
     noCertBox.visible = False
     welcomeBox.visible = True
@@ -93,8 +93,13 @@ def setUpUncertified(userName):
 def setUpCertified(userName):
     print("setting up Certified...")
     currentUIstate = UIStates.CERTIFIED
-    feesBox.bg = SIDE_COLOR
-    feesBox.visible = True
+    if sessionManager.isFilterChangeNeeded():
+        alertBox.visible = True
+        sideBar.bg = SIDE_ALERT_COLOR
+    else:
+        alertBox.visible = False
+        sideBar.bg = SIDE_COLOR
+    sideBar.visible = True
     welcomeBox.visible = False
     odoBox.visible = True
 
@@ -110,12 +115,17 @@ app.text_color="white"
 app.when_key_pressed = handleFobTag
 
 # Operator Information: side bar
-feesBox = Box(app, width=290, height="fill", align="right", visible=False, border=True)
-feesBox.text_size=16
-Text(feesBox, text="Operator Information")
-Text(feesBox, text= "February Fees: $4.56")
-Box(feesBox, width="fill", height=45, align="bottom") # spacer
-button = PushButton(feesBox, command=handleButton, text="Change Filter", padx=30, align="bottom")
+sideBar = Box(app, width=290, height="fill", align="right", visible=False) #, border=True)
+opInfoGrid = Box(sideBar, layout="grid", width="fill")
+Text(opInfoGrid, text="Operator Information", size=16, color="black", grid=[0,0], align="left")
+Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1], align="left")
+Box(sideBar, width="fill", height=45) # spacer
+# GIF and PNG are supported, except macOS which only supports GIF
+alertBox = Box(sideBar, width="fill", visible=False)
+Picture(alertBox, image="./images/alert.gif")
+Text(alertBox, text="Change Filter!", size=30, color="yellow")
+Box(sideBar, width="fill", height=45, align="bottom") # spacer
+button = PushButton(sideBar, command=handleButton, text="Change Filter", padx=30, align="bottom")
 #button.bg = "white" # Not Working
 #button.text_color = "black"
 button.text_size = 18
@@ -152,12 +162,11 @@ Text(noCertBox, text="You do not have a laser certification", size=18)
 Text(noCertBox, text="on file and are not authorized to use this laser", size=18)
 
 # CERTIFIED State
-odoBox = Box(app, align="top", width="fill", visible=False)
-odoBox.text_size=24
-Box(odoBox, width="fill", height=30) # spacer
-Text(odoBox, text="Welcome [Name]")
-Text(odoBox, text="ODO: 13148709183")
-Text(odoBox, text="Session Cost: $1.76")
+odoBox = Box(app, layout="grid", width="fill", align="top", visible=False)
+odoBox.text_size=48
+Box(odoBox, grid=[0,0], width="fill", height=48) # spacer
+Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
+Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
 
 print("App ready to display...")
 app.display()
