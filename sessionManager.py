@@ -1,4 +1,5 @@
 from enum import Enum
+from filter import filterType
 from laserSession import LaserSession
 import os
 import requests
@@ -13,70 +14,93 @@ class Auth_Result(Enum):
     ERROR = 4
 
 class SessionManager:
-    # Class variables
-    auth_URL = os.getenv("LASER_EXPORT_URL")
-
     def __init__(self, currentUser=None, currentFilter=None):
         # Instance variables
         self.currentUser = currentUser
         self.currentFilter = currentFilter
 
     def currentFilterData(self):
-        #TODO: pull from currentFilter
-        return 'Unknown', 0
+        if self.currentFilter == None:
+            return 'Unknown', 0
+        else:
+            filterType = self.currentFilter.filterType
+            remainingTime = self.currentFilter.calcRemainingTime()
+            return filterType, remainingTime
 
     def authenticate_credential(self, credential):
+        result = Auth_Result.NOT_AUTHENTICATED
         if self.currentUser == None:
-            #TODO attempt login
-            # fetch accesslist if empty or expired
-            # load the accesslist
-            # log attmept to GC ActivityListing
-            if credential == "005A5891":
+            authSuccess = False
+            rfids = self.fetchAccessList()
+            if credential in rfids:
                 self.currentUser = LaserSession(credential)
-                return Auth_Result.AUTHENTICATED
-            else: 
-                return Auth_Result.NOT_AUTHENTICATED
+                result = Auth_Result.AUTHENTICATED
+                authSuccess = True
+            #TODO log attempt to GC ActivityListing
         elif self.currentUser.credential == credential:
             self.logout(credential)
-            return Auth_Result.LOGGED_OUT
+            result = Auth_Result.LOGGED_OUT
         else:
-            return Auth_Result.ANOTHER_USER_LOGGED_IN
+            result = Auth_Result.ANOTHER_USER_LOGGED_IN
+        return result
 
     def logout(self, credential):
         self.currentUser = None
         #TODO log to GC LaserActivty
 
-    # Untested...
+    def isFilterChangeNeeded(self):
+        if self.currentFilter == None:
+            return True
+        else:
+            #TODO check remaining time on filter
+            return False
     
     def fetchAccessList(self):
         """Pulls certified laser RFIDs from URL defined as an environment variable"""
+        laserAccessURL = os.getenv("ACE_ACCESS_URL")
+
         payload = None
         headers = {'User-Agent': 'Wget/1.20.1 (linux-gnu)'}
-        # response = requests.get(URL, params=payload, verify=False)
         try:
-            response = requests.get(URL, params=payload, headers=headers)
+            # response = requests.get(laserAccessURL, params=payload, verify=False)
+            response = requests.get(laserAccessURL, params=payload, headers=headers)
         except requests.exceptions.Timeout:
-            #TODO:  Maybe set up for a retry, or continue in a retry loop
+            #TODO  Maybe set up for a retry, or continue in a retry loop
             print("Timeout connecting to URL")
             sys.exit(1)
         except requests.exceptions.TooManyRedirects:
-            #TODO: Tell the user their URL was bad and try a different one
+            #TODO Tell the user their URL was bad and try a different one
             print("Invalid URL, exiting")
             sys.exit(1)
         except requests.exceptions.RequestException as e:
             print(e)
             sys.exit(1)
         rfids = response.content.decode("utf-8").split('\n')
-        return rfids
-
-    def cacheRFIDs(self, rfids, filename="authorized.txt"):
-        file = open(filename, "w+")
+        # cache rfids
+        file = open("authorized.txt", "w+")
         for token in rfids:
             # short_token = token[-6:]
             short_token = token[-8:]
             file.write(short_token + "\n")
+        return rfids
 
-    def load_whitelist(self):
+    def load_acceslist(self):
         with open("authorized.txt", 'r') as f:
             authorized_rfids = f.read().split("\n")
             return authorized_rfids
+
+    def postActivityListing(self, credential, authSuccess):
+        ASSET_ID = os.environ['ACEGC_ASSET_ID']
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        REPORTING_URL = os.environ['ACEGC_REPORTING_URL']
+
+        data = {
+            'access_point': ASSET_ID,
+            'activity_date': datetime.now(),
+            'credential': credential,
+            'success': authSuccess,
+        }
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        resp = requests.post(REPORTING_URL, data, headers=headers)
+        print(resp.content)
+        return resp
