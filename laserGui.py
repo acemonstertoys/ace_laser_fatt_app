@@ -56,10 +56,10 @@ def handleFobTag(event_data):
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             print("Another user is logged in!!!")
-            #TODO communicate to the user
+            app.info("Fob Info", "Another user is already logged in")
         else:
             print("Some sort of error!!!")
-            #TODO communicate error to the user
+            app.warn("Fob Info", "Some sort of error!!!")
         # clear out tagged capture 
         taggedFob = ""
     else:

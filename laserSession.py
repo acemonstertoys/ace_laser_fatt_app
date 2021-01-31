@@ -6,8 +6,14 @@ class LaserSession:
         self.currentOdometer = startingOdometer
 
     def calculate_firing_time():
+        """
+        docstring
+        """
         return self.currentOdometer - self.startingOdometer
     
     def calculate_session_cost():
-        # pull from laser.py
+        """
+        docstring
+        """
+        #TODO pull from laser.py
         return 0.0

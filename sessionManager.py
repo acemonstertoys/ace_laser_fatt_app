@@ -1,5 +1,5 @@
 from enum import Enum
-from filter import filterType
+from filter import FilterType
 from laserSession import LaserSession
 import os
 import requests
@@ -36,7 +36,7 @@ class SessionManager:
                 self.currentUser = LaserSession(credential)
                 result = Auth_Result.AUTHENTICATED
                 authSuccess = True
-            #TODO log attempt to GC ActivityListing
+            self.postActivityListing(credential,authSuccess)
         elif self.currentUser.credential == credential:
             self.logout(credential)
             result = Auth_Result.LOGGED_OUT
@@ -51,8 +51,9 @@ class SessionManager:
     def isFilterChangeNeeded(self):
         if self.currentFilter == None:
             return True
+        elif self.currentFilter.calcRemainingTime() < 10:
+            return True
         else:
-            #TODO check remaining time on filter
             return False
     
     def fetchAccessList(self):

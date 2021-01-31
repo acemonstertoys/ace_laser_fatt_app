@@ -22,7 +22,7 @@ class Filter:
         """
         docstring
         """
-        # call GC
+        #TODO call GC
         # return new filterID
         pass
 
@@ -37,7 +37,7 @@ class Filter:
         """
         docstring
         """
-        # call GC
+        #TODO call GC
         pass
 
     def calcRemainingTime(self):
@@ -49,6 +49,6 @@ class Filter:
         totalUsage = self.recordedUsage + currentUsage
         if self.filterType == FilterType.GREEN_ORGANICS:
             remainingTime = 140 - totalUsage
-        elif self.filterType == FilterType.WHITE_SYNTHETICS
+        elif self.filterType == FilterType.WHITE_SYNTHETICS:
             remainingTime = 60 - totalUsage
         return remainingTime
