@@ -10,7 +10,7 @@ UNAUTH_COLOR = "#8F009B"
 UNAUTH_FILTER_COLOR = "#5B2262"
 SIDE_COLOR = "#63BBE8"
 SIDE_ALERT_COLOR = "#E5008A"
-CHANGE_FILTER_COLOR = "#64BAE7"
+CHANGE_FILTER_COLOR = "#90CFEE"
 
 # Global Variables ----
 class UIStates(Enum):
@@ -51,7 +51,7 @@ def handleFobTag(event_data):
             setUpUncertified(fobHex)
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
-            setUpCertified(fobHex)
+            setUpCertified()
         elif result == Auth_Result.LOGGED_OUT:
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
@@ -68,10 +68,12 @@ def handleFobTag(event_data):
         #print("keysym =  " + event_data.tk_event.keysym)
         #print("keysym_num =  " + str(event_data.tk_event.keysym_num))
         taggedFob += event_data.key
-    
-def handleButton():
-    print("Button was pressed")
-    setUpChangeFilter()
+
+def handleNewOrganicsFilter():
+    print("handleNewOrganicsFilter...")
+
+def handleNewSyntheticsFilter():
+    print("handleNewSyntheticsFilter...")
 
 def setUpWaiting():
     print("setting up Waiting...")
@@ -90,24 +92,34 @@ def setUpUncertified(userName):
     noCertBox.visible = True
     app.after(7000, setUpWaiting)
 
-def setUpCertified(userName):
+def setUpCertified():
     print("setting up Certified...")
     currentUIstate = UIStates.CERTIFIED
     if sessionManager.isFilterChangeNeeded():
-        alertBox.visible = True
+        aideBarAlert.visible = True
         sideBar.bg = SIDE_ALERT_COLOR
     else:
-        alertBox.visible = False
+        aideBarAlert.visible = False
         sideBar.bg = SIDE_COLOR
     sideBar.visible = True
     welcomeBox.visible = False
+    changeFilterBox.visible  = False
     odoBox.visible = True
 
 def setUpChangeFilter():
     print("setting up Change Filter...")
     currentUIstate = UIStates.CHANGE_FILTER
-    welcomeBox.visible = False
-    
+    app.bg = CHANGE_FILTER_COLOR
+    sideBar.visible = False
+    odoBox.visible = False
+    changeFilterBox.visible  = True
+
+def setUpNewFilter():
+    print("setting up New Filter...")
+
+def setUpExistingFilter():
+    print("setting up Existing Filter...")
+
 # App --------------
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
 app.font="DejaVu Serif"
@@ -120,15 +132,14 @@ opInfoGrid = Box(sideBar, layout="grid", width="fill")
 Text(opInfoGrid, text="Operator Information", size=16, color="black", grid=[0,0], align="left")
 Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1], align="left")
 Box(sideBar, width="fill", height=45) # spacer
+aideBarAlert = Box(sideBar, width="fill", visible=False)
 # GIF and PNG are supported, except macOS which only supports GIF
-alertBox = Box(sideBar, width="fill", visible=False)
-Picture(alertBox, image="./images/alert.gif")
-Text(alertBox, text="Change Filter!", size=30, color="yellow")
+Picture(aideBarAlert, image="./images/alert.gif")
+Text(aideBarAlert, text="Change Filter!", size=30, color="yellow")
 Box(sideBar, width="fill", height=45, align="bottom") # spacer
-button = PushButton(sideBar, command=handleButton, text="Change Filter", padx=30, align="bottom")
+PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom").text_size = 18
 #button.bg = "white" # Not Working
 #button.text_color = "black"
-button.text_size = 18
 
 # Date & Time: always visible
 dateTimeBox = Box(app, width="fill", align="top")
@@ -167,6 +178,34 @@ odoBox.text_size=48
 Box(odoBox, grid=[0,0], width="fill", height=48) # spacer
 Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
 Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
+
+# Change Filter
+changeFilterBox = Box(app, align="top", width="fill", visible=False) #, border=True)
+Box(changeFilterBox, width="fill", height=60) # spacer
+changeNoticeBox = Box(changeFilterBox, width="fill", border=True)
+#changeNoticeBox.bg = "white"
+changeNoticeBox.tk.configure(background="white")
+changeNoticeBox.text_color = "black"
+changeNoticeBox.text_size = 16
+Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
+Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
+Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
+Text(changeFilterBox, text="What kind of filter are you putting in?", size=16)
+Box(changeFilterBox, width="fill", height=60) # spacer
+PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", padx=30).text_size = 18
+PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", padx=30).text_size = 18
+
+# New Filter
+newFilterBox = Box(app, align="top", width="fill", visible=False)
+Box(newFilterBox, width="fill", height=60) # spacer
+Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
+PushButton(newFilterBox, command=handleNewOrganicsFilter, text="Green Filter", padx=30)
+PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter", padx=30)
+
+# Existing Filter
+usedFilterBox = Box(app, align="top", width="fill", visible=False)
+Box(usedFilterBox, width="fill", height=60) # spacer
+Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 
 print("App ready to display...")
 app.display()
