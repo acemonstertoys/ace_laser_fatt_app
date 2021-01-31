@@ -1,5 +1,6 @@
 # New Laser Odometer
 *TBD description*
+* images — 
 * laser.py — Interface to the Teensy controller *(link TBD)*
 * laserGui.py — GUI built on [guizero](https://lawsie.github.io/guizero/) which wraps standard Python Tkinter GUI library.
 * laserSession.py — 
@@ -17,7 +18,9 @@
 
 ## Environment Variables
 *TBD overview description*
-* ACCESS_LIST_REFRESH — time in minutes to refersh the access list. Default is 15
-* ACCESS_LIST_URL — the access list URL
-* LASER_COST — the cost in cents per minute of laser firing. Default is 0.5
-* LOGOUT_TIME - Default is 40.
+* ACE_ACCESS_URL — the access list URL
+* ACEGC_ASSET_ID —
+* ACEGC_ASSET_TOKEN — 
+* ACEGC_LASER_COST — the cost in cents per minute of laser firing. Default is 0.5
+* ACEGC_LOGOUT_TIME - Default is 40.
+* ACEGC_REPORTING_URL - URL to Grand Central
