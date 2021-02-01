@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from filter import FilterType
 from laserSession import LaserSession
@@ -58,6 +59,7 @@ class SessionManager:
     
     def fetchAccessList(self):
         """Pulls certified laser RFIDs from URL defined as an environment variable"""
+        print("fetching access list...")
         laserAccessURL = os.getenv("ACE_ACCESS_URL")
 
         payload = None
@@ -91,6 +93,7 @@ class SessionManager:
             return authorized_rfids
 
     def postActivityListing(self, credential, authSuccess):
+        print('posting ActivityListing for '+ credential, authSuccess)
         ASSET_ID = os.environ['ACEGC_ASSET_ID']
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         REPORTING_URL = os.environ['ACEGC_REPORTING_URL']
