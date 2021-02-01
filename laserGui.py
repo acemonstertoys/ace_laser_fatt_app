@@ -46,6 +46,7 @@ def handleFobTag(event_data):
         print("Fob = "+ fobHex)
 
         result = sessionManager.authenticate_credential(fobHex)
+        #result = Auth_Result.AUTHENTICATED
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
@@ -71,9 +72,15 @@ def handleFobTag(event_data):
 
 def handleNewOrganicsFilter():
     print("handleNewOrganicsFilter...")
+    #TODO: set a new filter
+    newFilterBox.visible = False
+    setUpCertified()
 
 def handleNewSyntheticsFilter():
     print("handleNewSyntheticsFilter...")
+    #TODO: set a new filter
+    newFilterBox.visible = False
+    setUpCertified()
 
 def setUpWaiting():
     print("setting up Waiting...")
@@ -116,9 +123,13 @@ def setUpChangeFilter():
 
 def setUpNewFilter():
     print("setting up New Filter...")
+    changeFilterBox.visible = False
+    newFilterBox.visible = True
 
 def setUpExistingFilter():
     print("setting up Existing Filter...")
+    changeFilterBox.visible = False
+    usedFilterBox.visible = True
 
 # App --------------
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
@@ -182,7 +193,7 @@ Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
 # Change Filter
 changeFilterBox = Box(app, align="top", width="fill", visible=False) #, border=True)
 Box(changeFilterBox, width="fill", height=60) # spacer
-changeNoticeBox = Box(changeFilterBox, width="fill", border=True)
+changeNoticeBox = Box(changeFilterBox, width="fill") #, border=True)
 #changeNoticeBox.bg = "white"
 changeNoticeBox.tk.configure(background="white")
 changeNoticeBox.text_color = "black"
@@ -190,17 +201,21 @@ changeNoticeBox.text_size = 16
 Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
 Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
 Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
+Box(changeFilterBox, width="fill", height=30) # spacer
 Text(changeFilterBox, text="What kind of filter are you putting in?", size=16)
-Box(changeFilterBox, width="fill", height=60) # spacer
-PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", padx=30).text_size = 18
-PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", padx=30).text_size = 18
+Box(changeFilterBox, width="fill", height=15) # spacer
+PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", width=25, pady=15).text_size = 18
+Box(changeFilterBox, width="fill", height=10) # spacer
+PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", width=25, pady=15).text_size = 18
 
 # New Filter
 newFilterBox = Box(app, align="top", width="fill", visible=False)
 Box(newFilterBox, width="fill", height=60) # spacer
 Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
-PushButton(newFilterBox, command=handleNewOrganicsFilter, text="Green Filter", padx=30)
-PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter", padx=30)
+Box(newFilterBox, width="fill", height=30) # spacer
+PushButton(newFilterBox, command=handleNewOrganicsFilter, text="Green Filter for organics", width=25, pady=15).text_size = 18
+Box(newFilterBox, width="fill", height=15) # spacer
+PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter for synthetics", width=25, pady=15).text_size = 18
 
 # Existing Filter
 usedFilterBox = Box(app, align="top", width="fill", visible=False)
