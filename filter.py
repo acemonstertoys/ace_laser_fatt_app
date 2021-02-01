@@ -12,19 +12,12 @@ class Filter:
     https://wiki.acemakerspace.org/how-to-change-the-filter-before-the-blower/
     """
 
-    def __init__(self, filterId, filterType, odometerReading):
+    def __init__(self, filterType, filterId=0, odometerReading=0):
         self.filterId = filterId
         self.filterType = filterType
         self.startOdometer = odometerReading    # what units is the odometer in?
         self.endOdometer = odometerReading
-
-    def createNewFiler(self):
-        """
-        docstring
-        """
-        #TODO call GC
-        # return new filterID
-        pass
+        self.recordedUsage =0
 
     def changeFilter(self, oldFilterID, newFilterID):
         """

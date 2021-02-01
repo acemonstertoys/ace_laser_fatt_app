@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from filter import Filter, FilterType
 from guizero import App, Box, Picture, PushButton, Text
 from sessionManager import Auth_Result, SessionManager
 
@@ -72,13 +73,13 @@ def handleFobTag(event_data):
 
 def handleNewOrganicsFilter():
     print("handleNewOrganicsFilter...")
-    #TODO: set a new filter
+    sessionManager.createNewFilter(FilterType.GREEN_ORGANICS)
     newFilterBox.visible = False
     setUpCertified()
 
 def handleNewSyntheticsFilter():
     print("handleNewSyntheticsFilter...")
-    #TODO: set a new filter
+    sessionManager.createNewFilter(FilterType.WHITE_SYNTHETICS)
     newFilterBox.visible = False
     setUpCertified()
 
@@ -102,6 +103,7 @@ def setUpUncertified(userName):
 def setUpCertified():
     print("setting up Certified...")
     currentUIstate = UIStates.CERTIFIED
+    updateFilterData()
     if sessionManager.isFilterChangeNeeded():
         aideBarAlert.visible = True
         sideBar.bg = SIDE_ALERT_COLOR

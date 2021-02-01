@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from filter import FilterType
+from filter import Filter, FilterType
 from laserSession import LaserSession
 import os
 import requests
@@ -20,14 +20,34 @@ class SessionManager:
         self.currentUser = currentUser
         self.currentFilter = currentFilter
 
+    # Filter Methods
     def currentFilterData(self):
-        if self.currentFilter == None:
-            return 'Unknown', 0
-        else:
-            filterType = self.currentFilter.filterType
+        filterType = 'Unknown'
+        remainingTime = 0
+        if self.currentFilter != None:
+            if self.currentFilter.filterType == FilterType.GREEN_ORGANICS:
+                filterType = "Organics"
+            else:
+                filterType = "Synthetics"
             remainingTime = self.currentFilter.calcRemainingTime()
-            return filterType, remainingTime
+        return filterType, remainingTime
+    
+    def isFilterChangeNeeded(self):
+        if self.currentFilter == None:
+            return True
+        elif self.currentFilter.calcRemainingTime() < 10:
+            return True
+        else:
+            return False
+    
+    def createNewFilter(self, filterType):
+        """
+        docstring
+        """
+        self.currentFilter = Filter(filterType)
+        #TODO call GC to generate filterId
 
+    # Authentication Methods
     def authenticate_credential(self, credential):
         result = Auth_Result.NOT_AUTHENTICATED
         if self.currentUser == None:
@@ -48,15 +68,7 @@ class SessionManager:
     def logout(self, credential):
         self.currentUser = None
         #TODO log to GC LaserActivty
-
-    def isFilterChangeNeeded(self):
-        if self.currentFilter == None:
-            return True
-        elif self.currentFilter.calcRemainingTime() < 10:
-            return True
-        else:
-            return False
-    
+   
     def fetchAccessList(self):
         """Pulls certified laser RFIDs from URL defined as an environment variable"""
         print("fetching access list...")
