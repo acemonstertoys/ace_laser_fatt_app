@@ -22,17 +22,18 @@ class SessionManager:
 
     # Filter Methods
     def currentFilterData(self):
-        filterType = 'Unknown'
-        remainingTime = 0
+        """
+        Returns filter type and time remaining on filter
+        """
         if self.currentFilter != None:
-            if self.currentFilter.filterType == FilterType.GREEN_ORGANICS:
-                filterType = "Organics"
-            else:
-                filterType = "Synthetics"
-            remainingTime = self.currentFilter.calcRemainingTime()
-        return filterType, remainingTime
-    
+            return self.currentFilter.filterSummary()
+        else:
+            return 'Unknown', 0
+
     def isFilterChangeNeeded(self):
+        """
+        docstring
+        """
         if self.currentFilter == None:
             return True
         elif self.currentFilter.calcRemainingTime() < 10:
@@ -70,7 +71,9 @@ class SessionManager:
         #TODO log to GC LaserActivty
    
     def fetchAccessList(self):
-        """Pulls certified laser RFIDs from URL defined as an environment variable"""
+        """
+        Pulls certified laser RFIDs from URL defined as an environment variable
+        """
         print("fetching access list...")
         laserAccessURL = os.getenv("ACE_ACCESS_URL")
 

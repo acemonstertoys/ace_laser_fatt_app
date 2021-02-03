@@ -47,7 +47,6 @@ def handleFobTag(event_data):
         print("Fob = "+ fobHex)
 
         result = sessionManager.authenticate_credential(fobHex)
-        #result = Auth_Result.AUTHENTICATED
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)

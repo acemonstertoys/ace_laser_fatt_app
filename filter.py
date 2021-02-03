@@ -2,6 +2,10 @@ from enum import Enum
 import requests
 
 # Global Variables ----
+''' How many minutes should a filter be used? '''
+GREEN_ORGANICS_LIFE = 140
+WHITE_SYNTHETICS_LIFE = 60
+
 class FilterType(Enum):
     GREEN_ORGANICS = 0
     WHITE_SYNTHETICS = 1
@@ -15,9 +19,9 @@ class Filter:
     def __init__(self, filterType, filterId=0, odometerReading=0):
         self.filterId = filterId
         self.filterType = filterType
+        self.recordedUsage = 0
         self.startOdometer = odometerReading    # what units is the odometer in?
         self.endOdometer = odometerReading
-        self.recordedUsage =0
 
     def changeFilter(self, oldFilterID, newFilterID):
         """
@@ -41,7 +45,19 @@ class Filter:
         currentUsage = self.endOdometer - self.startOdometer
         totalUsage = self.recordedUsage + currentUsage
         if self.filterType == FilterType.GREEN_ORGANICS:
-            remainingTime = 140 - totalUsage
+            remainingTime = GREEN_ORGANICS_LIFE - totalUsage
         elif self.filterType == FilterType.WHITE_SYNTHETICS:
-            remainingTime = 60 - totalUsage
+            remainingTime = WHITE_SYNTHETICS_LIFE - totalUsage
         return remainingTime
+
+    def filterSummary(self):
+        """
+        Returns filter type and time remaining on filter
+        """
+        filterType = 'Unknown'
+        remainingTime = self.calcRemainingTime()
+        if self.filterType == FilterType.GREEN_ORGANICS:
+            filterType = "Organics"
+        else:
+            filterType = "Synthetics"
+        return filterType, remainingTime
