@@ -30,7 +30,7 @@ class SessionManager:
         else:
             return 'Unknown', 0
 
-    def isFilterChangeNeeded(self):
+    def is_filter_change_needed(self):
         """
         docstring
         """
@@ -41,21 +41,33 @@ class SessionManager:
         else:
             return False
     
-    def createNewFilter(self, filterType):
+    def create_new_filter(self, filterType):
         """
         docstring
         """
-        self.currentFilter = Filter(filterType)
-        #TODO call GC to generate filterId
+        print('posting new Filter of type: '+ filterType)
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filter/"
+
+        data = {
+            'access_point': ASSET_ID,
+            'activity_date': datetime.now(),
+        }
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        resp = requests.post(filter_API_URL, data, headers=headers)
+        print(resp.content)
+        self.currentFilter = Filter()
 
     # Authentication Methods
     def authenticate_credential(self, credential):
+        """
+        Called when a fob is tagged.
+        """
         result = Auth_Result.NOT_AUTHENTICATED
         if self.currentUser == None:
             authSuccess = False
-            rfids = self.fetchAccessList()
-            if credential in rfids:
-                self.currentUser = LaserSession(credential)
+            self.currentUser = self.authorized_user_for_credential(credential)
+            if self.currentUser != None:
                 result = Auth_Result.AUTHENTICATED
                 authSuccess = True
             self.postActivityListing(credential,authSuccess)
@@ -65,23 +77,42 @@ class SessionManager:
         else:
             result = Auth_Result.ANOTHER_USER_LOGGED_IN
         return result
+    
+    def authorized_user_for_credential(self, credential):
+        """
+        Looks for the credential, aka fob, in the access list.
+        The access list is a json list of laser authorized user disctionaries.
+        Each user dictionary should contain an RFID key, the credential.
+        Returns a LaserSession representing the user or none if no match
+        """
+        print('checking for credential: '+ credential +' in access list...')
+        user = None
+        accessList = self.fetch_access_list()
+        for userDict in accessList:
+            #print(ususerDicter)
+            if userDict['RFID'] == credential:
+                print('found!')
+                user = LaserSession(userDict)
+                break
+        return user
 
     def logout(self, credential):
         self.currentUser = None
         #TODO log to GC LaserActivty
    
-    def fetchAccessList(self):
+    def fetch_access_list(self):
         """
-        Pulls certified laser RFIDs from URL defined as an environment variable
+        Pulls certified laser RFIDs from URL defined as an environment variable.
+        The json list contains only those user allowed to use the laser.
         """
         print("fetching access list...")
-        laserAccessURL = os.getenv("ACE_ACCESS_URL")
+        ACCESS_URL = os.getenv("ACE_ACCESS_URL")
+        EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
 
-        payload = None
+        body = {'ace_export_token': EXPORT_TOKEN}
         headers = {'User-Agent': 'Wget/1.20.1 (linux-gnu)'}
         try:
-            # response = requests.get(laserAccessURL, params=payload, verify=False)
-            response = requests.get(laserAccessURL, params=payload, headers=headers)
+            response = requests.post(ACCESS_URL, body, headers=headers)
         except requests.exceptions.Timeout:
             #TODO  Maybe set up for a retry, or continue in a retry loop
             print("Timeout connecting to URL")
@@ -93,25 +124,27 @@ class SessionManager:
         except requests.exceptions.RequestException as e:
             print(e)
             sys.exit(1)
-        rfids = response.content.decode("utf-8").split('\n')
-        # cache rfids
-        file = open("authorized.txt", "w+")
-        for token in rfids:
-            # short_token = token[-6:]
-            short_token = token[-8:]
-            file.write(short_token + "\n")
-        return rfids
+        userList = response.json()
+        print("Length of user list: ",len(userList))
+        data = response.content
+        with open('authorized.json', 'wb') as f:
+            f.write(data)
+        return userList
 
-    def load_acceslist(self):
-        with open("authorized.txt", 'r') as f:
-            authorized_rfids = f.read().split("\n")
+    def load_access_list(self):
+        """
+        Loads the json list of authorized user from file
+        """
+        #TODO: Currently not used;
+        with open('authorized.json', 'r') as json_file :
+            authorized_rfids = json.load(json_file)   
             return authorized_rfids
 
     def postActivityListing(self, credential, authSuccess):
         print('posting ActivityListing for '+ credential, authSuccess)
         ASSET_ID = os.environ['ACEGC_ASSET_ID']
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
-        REPORTING_URL = os.environ['ACEGC_REPORTING_URL']
+        reporting_URL = os.environ['ACEGC_BASE_URL'] + "/activitylistings/"
 
         data = {
             'access_point': ASSET_ID,
@@ -120,6 +153,6 @@ class SessionManager:
             'success': authSuccess,
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.post(REPORTING_URL, data, headers=headers)
+        resp = requests.post(reporting_URL, data, headers=headers)
         print(resp.content)
         return resp
