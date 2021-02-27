@@ -10,4 +10,4 @@ env.bak/
 venv.bak/
 
 # Project specific
-authorized.txt
+authorized.json
