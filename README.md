@@ -19,8 +19,9 @@
 ## Environment Variables
 *TBD overview description*
 * ACE_ACCESS_URL — the access list URL
+* ACE_EXPORT_TOKEN - 
 * ACEGC_ASSET_ID —
 * ACEGC_ASSET_TOKEN — 
+* ACEGC_BASE_URL - base URL to Grand Central
 * ACEGC_LASER_COST — the cost in cents per minute of laser firing. Default is 0.5
 * ACEGC_LOGOUT_TIME - Default is 40.
-* ACEGC_REPORTING_URL - URL to Grand Central
