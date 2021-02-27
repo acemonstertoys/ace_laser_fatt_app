@@ -48,7 +48,7 @@ def handleFobTag(event_data):
 
         result = sessionManager.authenticate_credential(fobHex)
         if result == Auth_Result.NOT_AUTHENTICATED:
-            print("ID: {} Authorized: {}".format(fobHex, False))
+            print("ID: {} NOT Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
@@ -72,13 +72,13 @@ def handleFobTag(event_data):
 
 def handleNewOrganicsFilter():
     print("handleNewOrganicsFilter...")
-    sessionManager.createNewFilter(FilterType.GREEN_ORGANICS)
+    sessionManager.create_new_filter(FilterType.GREEN_ORGANICS)
     newFilterBox.visible = False
     setUpCertified()
 
 def handleNewSyntheticsFilter():
     print("handleNewSyntheticsFilter...")
-    sessionManager.createNewFilter(FilterType.WHITE_SYNTHETICS)
+    sessionManager.create_new_filter(FilterType.WHITE_SYNTHETICS)
     newFilterBox.visible = False
     setUpCertified()
 
@@ -103,12 +103,15 @@ def setUpCertified():
     print("setting up Certified...")
     currentUIstate = UIStates.CERTIFIED
     updateFilterData()
-    if sessionManager.isFilterChangeNeeded():
+    if sessionManager.is_filter_change_needed():
         aideBarAlert.visible = True
         sideBar.bg = SIDE_ALERT_COLOR
     else:
         aideBarAlert.visible = False
         sideBar.bg = SIDE_COLOR
+    userNameText.value =  sessionManager.currentUser.name
+    odoBoxOdoText.value = sessionManager.currentUser.currentOdometer
+    odoBoxCostText.value = sessionManager.currentUser.calculate_session_cost()
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
@@ -142,7 +145,7 @@ app.when_key_pressed = handleFobTag
 sideBar = Box(app, width=290, height="fill", align="right", visible=False) #, border=True)
 opInfoGrid = Box(sideBar, layout="grid", width="fill")
 Text(opInfoGrid, text="Operator Information", size=16, color="black", grid=[0,0], align="left")
-Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1], align="left")
+userNameText = Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1], align="left")
 Box(sideBar, width="fill", height=45) # spacer
 aideBarAlert = Box(sideBar, width="fill", visible=False)
 # GIF and PNG are supported, except macOS which only supports GIF
@@ -188,8 +191,8 @@ Text(noCertBox, text="on file and are not authorized to use this laser", size=18
 odoBox = Box(app, layout="grid", width="fill", align="top", visible=False)
 odoBox.text_size=48
 Box(odoBox, grid=[0,0], width="fill", height=48) # spacer
-Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
-Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
+odoBoxOdoText = Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
+odoBoxCostText = Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
 
 # Change Filter
 changeFilterBox = Box(app, align="top", width="fill", visible=False) #, border=True)
