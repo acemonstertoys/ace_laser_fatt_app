@@ -1,19 +1,23 @@
+import os
+
 class LaserSession:
     def __init__(self, userDict, startingOdometer=0):
         self.credential = userDict['RFID']
         self.name = userDict['First Name'] + ' ' + userDict['Last Initial']
         self.startingOdometer = startingOdometer
         self.currentOdometer = startingOdometer
+        self.LASER_COST = os.environ.get('ACEGC_LASER_COST', 0.5)
 
-    def calculate_firing_time(this):
+    def calculate_firing_time(self):
         """
-        docstring
+        Subtracts the session starting odometer reading from the current odometer reading.
         """
+        #TODO: document units
         return self.currentOdometer - self.startingOdometer
     
-    def calculate_session_cost(this):
+    def calculate_session_cost(self):
         """
-        docstring
+        Multiplies firing time by laser cost.
+        Laser Cost is defined in the ACEGC_LASER_COST environment variable with a default of 0.5.
         """
-        #TODO pull from laser.py
-        return 0.0
+        return self.calculate_firing_time() / 60 * self.LASER_COST
