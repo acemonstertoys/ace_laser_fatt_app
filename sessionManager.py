@@ -43,20 +43,9 @@ class SessionManager:
     
     def create_new_filter(self, filterType):
         """
-        docstring
+        Calls Filter to create new filter
         """
-        print('posting new Filter of type: '+ filterType)
-        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
-        filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filter/"
-
-        data = {
-            'access_point': ASSET_ID,
-            'activity_date': datetime.now(),
-        }
-        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.post(filter_API_URL, data, headers=headers)
-        print(resp.content)
-        self.currentFilter = Filter()
+        self.currentFilter = Filter.create_new_filter(filterType)
 
     # Authentication Methods
     def authenticate_credential(self, credential):

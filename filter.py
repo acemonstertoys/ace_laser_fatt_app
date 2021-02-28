@@ -1,4 +1,5 @@
-from enum import Enum
+from enum import Enum, auto
+import os
 import requests
 
 # Global Variables ----
@@ -7,8 +8,16 @@ GREEN_ORGANICS_LIFE = 140
 WHITE_SYNTHETICS_LIFE = 60
 
 class FilterType(Enum):
-    GREEN_ORGANICS = 0
-    WHITE_SYNTHETICS = 1
+    GREEN_ORGANICS = auto()
+    WHITE_SYNTHETICS = auto()
+
+    def gcValue(self):
+        if self is FilterType.GREEN_ORGANICS:
+            return 'O'
+        elif self is FilterType.WHITE_SYNTHETICS:
+            return 'S'
+        else:
+            return 'U'
 
 class Filter:
     """
@@ -16,12 +25,31 @@ class Filter:
     https://wiki.acemakerspace.org/how-to-change-the-filter-before-the-blower/
     """
 
-    def __init__(self, filterType, filterId=0, odometerReading=0):
+    def __init__(self, filterId, filterType, recordedUsage=0, odometerReading=0):
         self.filterId = filterId
         self.filterType = filterType
-        self.recordedUsage = 0
+        self.recordedUsage = recordedUsage
         self.startOdometer = odometerReading    # what units is the odometer in?
         self.endOdometer = odometerReading
+
+    @classmethod
+    def create_new_filter(cls, filterType):
+        """
+        Creates a new filter in GC
+        """
+        print('Creating new Filter of type: '+ filterType.gcValue())
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
+
+        data = {
+            'filter_type': filterType.gcValue(),
+            'seconds_used': 0,
+        }
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        resp = requests.post(filter_API_URL, data, headers=headers)
+        print(resp.content)
+        jsonResp = resp.json()
+        return cls(jsonResp['id'],filterType)
 
     def changeFilter(self, oldFilterID, newFilterID):
         """
@@ -42,12 +70,15 @@ class Filter:
         Green organics filters can be used for a total of 140 minutes.
         White synthetics filter can be used for a total of 60 minutes.
         """
+        #print('calcRemainingTime for Filter of type: '+ self.filterType.gcValue())
         currentUsage = self.endOdometer - self.startOdometer
         totalUsage = self.recordedUsage + currentUsage
+        remainingTime = 0
         if self.filterType == FilterType.GREEN_ORGANICS:
             remainingTime = GREEN_ORGANICS_LIFE - totalUsage
         elif self.filterType == FilterType.WHITE_SYNTHETICS:
             remainingTime = WHITE_SYNTHETICS_LIFE - totalUsage
+        #print("calcRemainingTime: "+str(remainingTime))
         return remainingTime
 
     def filterSummary(self):
@@ -58,6 +89,12 @@ class Filter:
         remainingTime = self.calcRemainingTime()
         if self.filterType == FilterType.GREEN_ORGANICS:
             filterType = "Organics"
-        else:
+        elif self.filterType == FilterType.WHITE_SYNTHETICS:
             filterType = "Synthetics"
         return filterType, remainingTime
+
+    def display_id(self):
+        """
+        Prepends 'F' to the filterId, zero-padded to 3 characters
+        """
+        return 'F' + str(self.filterId).zfill(3)
