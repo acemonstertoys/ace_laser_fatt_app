@@ -37,7 +37,7 @@ class Filter:
         """
         Creates a new filter in GC
         """
-        print('Creating new Filter of type: '+ filterType.gcValue())
+        #print('Creating new Filter of type: '+ filterType.gcValue())
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
 
@@ -47,7 +47,7 @@ class Filter:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         resp = requests.post(filter_API_URL, data, headers=headers)
-        print(resp.content)
+        #print(resp.content)
         jsonResp = resp.json()
         return cls(jsonResp['id'],filterType)
 

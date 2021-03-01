@@ -114,7 +114,7 @@ class SessionManager:
             print(e)
             sys.exit(1)
         userList = response.json()
-        print("Length of user list: ",len(userList))
+        #print("Length of user list: ",len(userList))
         data = response.content
         with open('authorized.json', 'wb') as f:
             f.write(data)
@@ -130,7 +130,7 @@ class SessionManager:
             return authorized_rfids
 
     def postActivityListing(self, credential, authSuccess):
-        print('posting ActivityListing for '+ credential, authSuccess)
+        #print('posting ActivityListing for '+ credential, authSuccess)
         ASSET_ID = os.environ['ACEGC_ASSET_ID']
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         reporting_URL = os.environ['ACEGC_BASE_URL'] + "/activitylistings/"
@@ -143,5 +143,5 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         resp = requests.post(reporting_URL, data, headers=headers)
-        print(resp.content)
+        #print(resp.content)
         return resp
