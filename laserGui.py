@@ -110,8 +110,8 @@ def setUpCertified():
         aideBarAlert.visible = False
         sideBar.bg = SIDE_COLOR
     userNameText.value =  sessionManager.currentUser.name
-    odoBoxOdoText.value = sessionManager.currentUser.currentOdometer
-    odoBoxCostText.value = sessionManager.currentUser.calculate_session_cost()
+    odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentUser.currentOdometer)
+    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False

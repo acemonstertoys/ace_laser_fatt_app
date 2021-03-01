@@ -19,5 +19,8 @@ class LaserSession:
         """
         Multiplies firing time by laser cost.
         Laser Cost is defined in the ACEGC_LASER_COST environment variable with a default of 0.5.
+        Returns a currency formatted string
         """
-        return self.calculate_firing_time() / 60 * self.LASER_COST
+        cost = self.calculate_firing_time() / 60 * self.LASER_COST
+        # format as currency string
+        return "{:,.2f}".format(cost)
