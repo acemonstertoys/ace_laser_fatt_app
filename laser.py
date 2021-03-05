@@ -1,3 +1,6 @@
+import time
+from serial import Serial
+
 class Laser:
     '''
     The pi interfaces with the laser through a Teensy connected via a USB port.  

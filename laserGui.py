@@ -86,8 +86,7 @@ def setUpWaiting():
     print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
-    sideBar.visible = False
-    odoBox.visible = False
+    hideCertified()
     noCertBox.visible = False
     welcomeBox.visible = True
 
@@ -110,19 +109,24 @@ def setUpCertified():
         aideBarAlert.visible = False
         sideBar.bg = SIDE_COLOR
     userNameText.value =  sessionManager.currentUser.name
-    odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentUser.currentOdometer)
-    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
+    odometer = sessionManager.currentOdometer()
+    odoBoxOdoText.value = 'ODO: '+ str(odometer)
+    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost(odometer)
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
     odoBox.visible = True
 
-def setUpChangeFilter():
-    print("setting up Change Filter...")
-    currentUIstate = UIStates.CHANGE_FILTER
-    app.bg = CHANGE_FILTER_COLOR
+def hideCertified():
+    print("hiding Certified...")
     sideBar.visible = False
     odoBox.visible = False
+
+def setUpChangeFilter():
+    print("setting up Change Filter...")
+    hideCertified()
+    currentUIstate = UIStates.CHANGE_FILTER
+    app.bg = CHANGE_FILTER_COLOR
     changeFilterBox.visible  = True
 
 def setUpNewFilter():

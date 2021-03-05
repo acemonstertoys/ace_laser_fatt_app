@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from filter import Filter, FilterType
+from laser import Laser
 from laserSession import LaserSession
 import os
 import requests
@@ -19,7 +20,14 @@ class SessionManager:
         # Instance variables
         self.currentUser = currentUser
         self.currentFilter = currentFilter
+        self.laserInterface = Laser()
 
+    def currentOdometer(self):
+        """
+        Fetch the current odometer from the Laser
+        """
+        return 0
+    
     # Filter Methods
     def currentFilterData(self):
         """
