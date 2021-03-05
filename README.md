@@ -14,7 +14,14 @@
 
 ## Deployment
 *TBD overview description*
-1. *TBD*
+1. Update the Pi:
+```
+sudo apt-get update
+sudo apt-get upgrade
+```
+1. *TDB: get the souce on to the device*
+2. make sure the startup script is executable: ```chmod 755 kiosk.sh```
+3. set environment variables
 
 ## Environment Variables
 *TBD overview description*
