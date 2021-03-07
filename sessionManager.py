@@ -21,12 +21,14 @@ class SessionManager:
         self.currentUser = currentUser
         self.currentFilter = currentFilter
         self.laserInterface = Laser()
+        self.laserInterface.disable()
 
     def currentOdometer(self):
         """
         Fetch the current odometer from the Laser
         """
-        return 0
+        self.laserInterface.status()
+        return self.laserInterface.odometer
     
     # Filter Methods
     def currentFilterData(self):
@@ -67,6 +69,7 @@ class SessionManager:
             if self.currentUser != None:
                 result = Auth_Result.AUTHENTICATED
                 authSuccess = True
+                self.laserInterface.enable()
             self.postActivityListing(credential,authSuccess)
         elif self.currentUser.credential == credential:
             self.logout(credential)
@@ -95,6 +98,7 @@ class SessionManager:
 
     def logout(self, credential):
         self.currentUser = None
+        self.laserInterface.disable()
         #TODO log to GC LaserActivty
    
     def fetch_access_list(self):
