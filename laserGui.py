@@ -193,14 +193,14 @@ Text(noCertBox, text="on file and are not authorized to use this laser", size=18
 
 # CERTIFIED State
 odoBox = Box(app, layout="grid", width="fill", align="top", visible=False)
-odoBox.text_size=48
+odoBox.text_size=36
 Box(odoBox, grid=[0,0], width="fill", height=48) # spacer
 odoBoxOdoText = Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
 odoBoxCostText = Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
 
 # Change Filter
 changeFilterBox = Box(app, align="top", width="fill", visible=False) #, border=True)
-Box(changeFilterBox, width="fill", height=60) # spacer
+Box(changeFilterBox, width="fill", height=30) # spacer
 changeNoticeBox = Box(changeFilterBox, width="fill") #, border=True)
 #changeNoticeBox.bg = "white"
 changeNoticeBox.tk.configure(background="white")
