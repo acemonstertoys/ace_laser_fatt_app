@@ -28,7 +28,8 @@ class SessionManager:
         Fetch the current odometer from the Laser
         """
         self.laserInterface.status()
-        return self.laserInterface.odometer
+        # the laser interface store the odometer reading as a string
+        return int(self.laserInterface.odometer)
     
     # Filter Methods
     def currentFilterData(self):
@@ -92,7 +93,7 @@ class SessionManager:
             #print(ususerDicter)
             if userDict['RFID'] == credential:
                 print('found!')
-                user = LaserSession(userDict)
+                user = LaserSession(userDict, self.currentOdometer())
                 break
         return user
 
