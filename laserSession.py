@@ -16,7 +16,8 @@ class LaserSession:
         Subtracts the session starting odometer reading from the current odometer reading.
         """
         #TODO: document units
-        return currentOdometer - self.startingOdometer
+        print(currentOdometer)
+        return int(currentOdometer) - self.startingOdometer
     
     def calculate_session_cost(self, currentOdometer):
         """
