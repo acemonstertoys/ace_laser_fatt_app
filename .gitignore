@@ -9,5 +9,8 @@ ENV/
 env.bak/
 venv.bak/
 
+# Environment Files
+*.env 
+
 # Project specific
 authorized.json
