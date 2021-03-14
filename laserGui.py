@@ -36,6 +36,12 @@ def updateFilterData():
     filterTypeText.value = data[0]
     filterTimeText.value = str(data[1]) + ' Min.'
 
+def updateLaserOdometer():
+    print("updating odometer")
+    odometer = sessionManager.currentOdometer()
+    odoBoxOdoText.value = 'ODO: '+ str(odometer)
+    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost(odometer)
+
 def handleFobTag(event_data):
     #print("handleFobTag()...")
     global taggedFob
@@ -103,22 +109,22 @@ def setUpCertified():
     currentUIstate = UIStates.CERTIFIED
     updateFilterData()
     if sessionManager.is_filter_change_needed():
-        aideBarAlert.visible = True
+        sideBarAlert.visible = True
         sideBar.bg = SIDE_ALERT_COLOR
     else:
-        aideBarAlert.visible = False
+        sideBarAlert.visible = False
         sideBar.bg = SIDE_COLOR
     userNameText.value =  sessionManager.currentUser.name
-    odometer = sessionManager.currentOdometer()
-    odoBoxOdoText.value = 'ODO: '+ str(odometer)
-    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost(odometer)
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
+    app.repeat(60000, updateLaserOdometer) # Schedule call to odometer time very minute
+    updateLaserOdometer()
     odoBox.visible = True
 
 def hideCertified():
     print("hiding Certified...")
+    app.cancel(updateLaserOdometer)
     sideBar.visible = False
     odoBox.visible = False
 
@@ -151,10 +157,10 @@ opInfoGrid = Box(sideBar, layout="grid", width="fill")
 Text(opInfoGrid, text="Operator Information", size=16, color="black", grid=[0,0], align="left")
 userNameText = Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1], align="left")
 Box(sideBar, width="fill", height=45) # spacer
-aideBarAlert = Box(sideBar, width="fill", visible=False)
+sideBarAlert = Box(sideBar, width="fill", visible=False)
 # GIF and PNG are supported, except macOS which only supports GIF
-Picture(aideBarAlert, image="./images/alert.gif")
-Text(aideBarAlert, text="Change Filter!", size=30, color="yellow")
+Picture(sideBarAlert, image="./images/alert.gif")
+Text(sideBarAlert, text="Change Filter!", size=24, color="yellow")
 Box(sideBar, width="fill", height=45, align="bottom") # spacer
 PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom").text_size = 18
 #button.bg = "white" # Not Working
@@ -187,7 +193,7 @@ Text(welcomeBox, text="Tap your fob to begin", size=36)
 noCertBox = Box(app, align="top", width="fill", visible=False)
 noCertBox.bg = UNAUTH_COLOR
 Box(noCertBox, width="fill", height=60) # spacer
-Text(noCertBox, text="Hello [Name]", size=48)
+Text(noCertBox, text="Hello Member", size=48)
 Text(noCertBox, text="You do not have a laser certification", size=18)
 Text(noCertBox, text="on file and are not authorized to use this laser", size=18)
 
@@ -209,11 +215,11 @@ changeNoticeBox.text_size = 16
 Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
 Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
 Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
-Box(changeFilterBox, width="fill", height=30) # spacer
+Box(changeFilterBox, width="fill", height=15) # spacer
 Text(changeFilterBox, text="What kind of filter are you putting in?", size=16)
 Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", width=25, pady=15).text_size = 18
-Box(changeFilterBox, width="fill", height=10) # spacer
+Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", width=25, pady=15).text_size = 18
 
 # New Filter
