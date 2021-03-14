@@ -162,9 +162,10 @@ sideBarAlert = Box(sideBar, width="fill", visible=False)
 Picture(sideBarAlert, image="./images/alert.gif")
 Text(sideBarAlert, text="Change Filter!", size=24, color="yellow")
 Box(sideBar, width="fill", height=45, align="bottom") # spacer
-PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom").text_size = 18
-#button.bg = "white" # Not Working
-#button.text_color = "black"
+cfButton = PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom")
+cfButton.text_size = 18
+#cfButton.bg = "white" # Not Working
+#cfButton.text_color = "black"
 
 # Date & Time: always visible
 dateTimeBox = Box(app, width="fill", align="top")
@@ -202,7 +203,7 @@ odoBox = Box(app, layout="grid", width="fill", align="top", visible=False)
 odoBox.text_size=36
 Box(odoBox, grid=[0,0], width="fill", height=48) # spacer
 odoBoxOdoText = Text(odoBox, text="ODO: 13148709183", grid=[0,1], align="left")
-odoBoxCostText = Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left")
+odoBoxCostText = Text(odoBox, text="Session Cost: $1.76", grid=[0,2], align="left", size=30)
 
 # Change Filter
 changeFilterBox = Box(app, align="top", width="fill", visible=False) #, border=True)
@@ -213,9 +214,9 @@ changeNoticeBox.tk.configure(background="white")
 changeNoticeBox.text_color = "black"
 changeNoticeBox.text_size = 16
 Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
-Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
-Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
-Box(changeFilterBox, width="fill", height=15) # spacer
+#Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
+#Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
+#Box(changeFilterBox, width="fill", height=15) # spacer
 Text(changeFilterBox, text="What kind of filter are you putting in?", size=16)
 Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", width=25, pady=15).text_size = 18
