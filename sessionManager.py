@@ -58,6 +58,21 @@ class SessionManager:
         """
         self.currentFilter = Filter.create_new_filter(filterType)
 
+    def fetch_existing_filters(self):
+        """
+        Calls class method on Filter to Fetch existing filters from GC
+        """
+        return Filter.fetch_existing_filters()
+
+    def switch_to_filter(self, filterObj):
+        """
+        docstring
+        """
+        if self.currentFilter != None:
+            # update current filter usage time
+            self.currentFilter.updateRuntime(self.currentOdometer())
+        self.currentFilter = filterObj
+
     # Authentication Methods
     def authenticate_credential(self, credential):
         """

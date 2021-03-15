@@ -19,6 +19,14 @@ class FilterType(Enum):
         else:
             return 'U'
 
+    def stringValue(self):
+        if self is FilterType.GREEN_ORGANICS:
+            return 'Organics'
+        elif self is FilterType.WHITE_SYNTHETICS:
+            return 'Synthetics'
+        else:
+            return 'Unknown'
+
 class Filter:
     """
     How to change the filter before the blower
@@ -51,17 +59,34 @@ class Filter:
         jsonResp = resp.json()
         return cls(jsonResp['id'],filterType)
 
-    def changeFilter(self, oldFilterID, newFilterID):
+    @classmethod
+    def fetch_existing_filters(cls):
         """
-        docstring
+        Fetch existing filters from GC
         """
-        self.updateRuntime()
-        pass
+        print('Fetching existing Filters...')
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        resp = requests.get(filter_API_URL, headers=headers)
+        print(resp.content)
+        filterJson = resp.json()
+        filterList = list()
+        for filterDict in filterJson:
+            filterType = FilterType.GREEN_ORGANICS
+            gcFilterType = filterDict['filter_type']
+            if gcFilterType == "O":
+                filterType = FilterType.GREEN_ORGANICS
+            elif gcFilterType == "S":
+                filterType = FilterType.WHITE_SYNTHETICS
+            filterList.append(cls(filterDict['id'],filterType,filterDict['seconds_used']))
+        return filterList
 
-    def updateRuntime(self, usageTime):
+    def updateRuntime(self, currentOdometer):
         """
         docstring
         """
+        usageTime = 0
         #TODO call GC
         pass
 
@@ -85,16 +110,16 @@ class Filter:
         """
         Returns filter type and time remaining on filter
         """
-        filterType = 'Unknown'
-        remainingTime = self.calcRemainingTime()
-        if self.filterType == FilterType.GREEN_ORGANICS:
-            filterType = "Organics"
-        elif self.filterType == FilterType.WHITE_SYNTHETICS:
-            filterType = "Synthetics"
-        return filterType, remainingTime
+        return self.filterType.stringValue(), self.calcRemainingTime()
 
     def display_id(self):
         """
         Prepends 'F' to the filterId, zero-padded to 3 characters
         """
         return 'F' + str(self.filterId).zfill(3)
+
+    def display_summary(self):
+        """
+        Returns filter type and display_id() as a single string
+        """
+        return self.display_id() +" "+ self.filterType.stringValue()

@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 from filter import Filter, FilterType
 from guizero import App, Box, Picture, PushButton, Text
 from sessionManager import Auth_Result, SessionManager
@@ -14,14 +13,7 @@ SIDE_ALERT_COLOR = "#E5008A"
 CHANGE_FILTER_COLOR = "#90CFEE"
 
 # Global Variables ----
-class UIStates(Enum):
-    WAITING = 0
-    UNCERTIFIED = 1
-    CERTIFIED = 2
-    CHANGE_FILTER =3
-
 taggedFob = ""
-currentUIstate = UIStates.WAITING
 sessionManager = SessionManager()
 
 # Functions -----------
@@ -35,6 +27,7 @@ def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
     filterTimeText.value = str(data[1]) + ' Min.'
+
 
 def updateLaserOdometer():
     print("updating odometer")
@@ -77,15 +70,21 @@ def handleFobTag(event_data):
         taggedFob += event_data.key
 
 def handleNewOrganicsFilter():
-    print("handleNewOrganicsFilter...")
+    #print("handleNewOrganicsFilter...")
     sessionManager.create_new_filter(FilterType.GREEN_ORGANICS)
     newFilterBox.visible = False
     setUpCertified()
 
 def handleNewSyntheticsFilter():
-    print("handleNewSyntheticsFilter...")
+    #print("handleNewSyntheticsFilter...")
     sessionManager.create_new_filter(FilterType.WHITE_SYNTHETICS)
     newFilterBox.visible = False
+    setUpCertified()
+
+def handleChangeFilter(filterObj):
+    #print('handleChangeFilter... id='+ filterObj.display_id())
+    sessionManager.switch_to_filter(filterObj)
+    usedFilterBox.visible = False
     setUpCertified()
 
 def setUpWaiting():
@@ -94,11 +93,13 @@ def setUpWaiting():
     filterStatusBox.bg = FILTER_COLOR
     hideCertified()
     noCertBox.visible = False
+    changeFilterBox.visible = False
+    newFilterBox.visible = False
+    usedFilterBox.visible = False
     welcomeBox.visible = True
 
 def setUpUncertified(userName):
     print("setting up Uncertified...")
-    currentUIstate = UIStates.UNCERTIFIED
     app.bg = UNAUTH_COLOR
     welcomeBox.visible = False
     noCertBox.visible = True
@@ -106,7 +107,6 @@ def setUpUncertified(userName):
 
 def setUpCertified():
     print("setting up Certified...")
-    currentUIstate = UIStates.CERTIFIED
     updateFilterData()
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
@@ -131,7 +131,6 @@ def hideCertified():
 def setUpChangeFilter():
     print("setting up Change Filter...")
     hideCertified()
-    currentUIstate = UIStates.CHANGE_FILTER
     app.bg = CHANGE_FILTER_COLOR
     changeFilterBox.visible  = True
 
@@ -144,11 +143,23 @@ def setUpExistingFilter():
     print("setting up Existing Filter...")
     changeFilterBox.visible = False
     usedFilterBox.visible = True
+    # tear down filter buttons
+    for widget in reversed(usedFilterBtns.children):
+        widget.destroy()
+    # populate buttons representing list of existing filters
+    filters = sessionManager.fetch_existing_filters()
+    if len(filters)==0:
+        # no existing filters, add a button to create a new filter
+        PushButton(usedFilterBtns, command=setUpNewFilter, text="Create New Filter", width=25, pady=15).text_size = 18
+    else:
+        for lsrFilter in filters:
+            PushButton(usedFilterBtns, args = [lsrFilter], command=handleChangeFilter, text=lsrFilter.display_summary(), width=25, pady=15).text_size = 18
 
 # App --------------
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
 app.font="DejaVu Serif"
 app.text_color="white"
+app.set_full_screen()   # ESC will exit full screen
 app.when_key_pressed = handleFobTag
 
 # Operator Information: side bar
@@ -213,7 +224,7 @@ changeNoticeBox = Box(changeFilterBox, width="fill") #, border=True)
 changeNoticeBox.tk.configure(background="white")
 changeNoticeBox.text_color = "black"
 changeNoticeBox.text_size = 16
-Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
+#Text(changeNoticeBox, text="Important!", size=18, color=SIDE_ALERT_COLOR)
 #Text(changeNoticeBox, text="The filter you are replacing still has life in it.")
 #Text(changeNoticeBox, text="Please mark the filter as #F007 when you put it on the shelf.")
 #Box(changeFilterBox, width="fill", height=15) # spacer
@@ -236,6 +247,8 @@ PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter f
 usedFilterBox = Box(app, align="top", width="fill", visible=False)
 Box(usedFilterBox, width="fill", height=60) # spacer
 Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
+Box(usedFilterBox, width="fill", height=15) # spacer
+usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
 
 print("App ready to display...")
 app.display()
