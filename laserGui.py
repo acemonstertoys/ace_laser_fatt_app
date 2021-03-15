@@ -31,9 +31,8 @@ def updateFilterData():
 
 def updateLaserOdometer():
     print("updating odometer")
-    odometer = sessionManager.currentOdometer()
-    odoBoxOdoText.value = 'ODO: '+ str(odometer)
-    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost(odometer)
+    odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentOdometer())
+    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
 
 def handleFobTag(event_data):
     #print("handleFobTag()...")
@@ -252,4 +251,4 @@ usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
 
 print("App ready to display...")
 app.display()
-app.focus()
+#app.focus()

@@ -37,15 +37,15 @@ class Filter:
         self.filterId = filterId
         self.filterType = filterType
         self.recordedUsage = recordedUsage
-        self.startOdometer = odometerReading    # what units is the odometer in?
+        self.startOdometer = odometerReading    # TODO: what units is the odometer in?
         self.endOdometer = odometerReading
 
     @classmethod
-    def create_new_filter(cls, filterType):
+    def create_new_filter(cls, filterType, odoValue):
         """
         Creates a new filter in GC
         """
-        #print('Creating new Filter of type: '+ filterType.gcValue())
+        print('Creating new Filter of type: '+ filterType.gcValue())
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
 
@@ -57,7 +57,7 @@ class Filter:
         resp = requests.post(filter_API_URL, data, headers=headers)
         #print(resp.content)
         jsonResp = resp.json()
-        return cls(jsonResp['id'],filterType)
+        return cls(jsonResp['id'],filterType, odometerReading=odoValue)
 
     @classmethod
     def fetch_existing_filters(cls):
@@ -82,28 +82,39 @@ class Filter:
             filterList.append(cls(filterDict['id'],filterType,filterDict['seconds_used']))
         return filterList
 
-    def updateRuntime(self, currentOdometer):
+    def updateRuntime(self):
         """
-        docstring
+        Calculates usage and posts it to GC
         """
-        usageTime = 0
-        #TODO call GC
-        pass
+        print('Filter updateRuntime...')
+        currentUsage = self.endOdometer - self.startOdometer
+        totalUsage = currentUsage + self.recordedUsage
+        # update GC
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        #filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        data = {
+            #'id': + self.filterId,
+            'seconds_used': totalUsage,
+        }
+        resp = requests.patch(filter_API_URL, data, headers=headers)
+        print(resp.content)
 
     def calcRemainingTime(self):
         """
         Green organics filters can be used for a total of 140 minutes.
         White synthetics filter can be used for a total of 60 minutes.
         """
-        #print('calcRemainingTime for Filter of type: '+ self.filterType.gcValue())
+        print('calcRemainingTime for Filter of type: '+ self.filterType.gcValue())
         currentUsage = self.endOdometer - self.startOdometer
-        totalUsage = self.recordedUsage + currentUsage
+        totalUsageMin = (self.recordedUsage + currentUsage)/60
         remainingTime = 0
         if self.filterType == FilterType.GREEN_ORGANICS:
-            remainingTime = GREEN_ORGANICS_LIFE - totalUsage
+            remainingTime = GREEN_ORGANICS_LIFE - totalUsageMin
         elif self.filterType == FilterType.WHITE_SYNTHETICS:
-            remainingTime = WHITE_SYNTHETICS_LIFE - totalUsage
-        #print("calcRemainingTime: "+str(remainingTime))
+            remainingTime = WHITE_SYNTHETICS_LIFE - totalUsageMin
+        print("calcRemainingTime: "+str(remainingTime))
         return remainingTime
 
     def filterSummary(self):

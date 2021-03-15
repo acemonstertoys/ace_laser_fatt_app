@@ -28,8 +28,13 @@ class SessionManager:
         Fetch the current odometer from the Laser
         """
         self.laserInterface.status()
-        # the laser interface store the odometer reading as a string
-        return int(self.laserInterface.odometer)
+        # the laser interface stores the odometer reading as a string
+        odoInt = int(self.laserInterface.odometer)
+        if self.currentUser != None:
+            self.currentUser.endOdometer = odoInt
+        if self.currentFilter != None:
+            self.currentFilter.endOdometer = odoInt
+        return odoInt
     
     # Filter Methods
     def currentFilterData(self):
@@ -56,7 +61,7 @@ class SessionManager:
         """
         Calls Filter to create new filter
         """
-        self.currentFilter = Filter.create_new_filter(filterType)
+        self.currentFilter = Filter.create_new_filter(filterType, self.currentOdometer())
 
     def fetch_existing_filters(self):
         """
@@ -66,11 +71,14 @@ class SessionManager:
 
     def switch_to_filter(self, filterObj):
         """
-        docstring
+        updates the runtime on the current filter before switching to the passed in the filter
         """
+        odoValue = self.currentOdometer()
+        filterObj.startOdometer = odoValue
+        filterObj.endOdometer = odoValue
         if self.currentFilter != None:
             # update current filter usage time
-            self.currentFilter.updateRuntime(self.currentOdometer())
+            self.currentFilter.updateRuntime()
         self.currentFilter = filterObj
 
     # Authentication Methods
