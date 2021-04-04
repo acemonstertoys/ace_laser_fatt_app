@@ -31,7 +31,7 @@ class SessionManager:
         # the laser interface stores the odometer reading as a string
         odoInt = int(self.laserInterface.odometer)
         if self.currentUser != None:
-            self.currentUser.endOdometer = odoInt
+            self.currentUser.end_odo = odoInt
         if self.currentFilter != None:
             self.currentFilter.endOdometer = odoInt
         return odoInt
@@ -121,9 +121,13 @@ class SessionManager:
         return user
 
     def logout(self, credential):
-        self.currentUser = None
         self.laserInterface.disable()
-        #TODO log to GC LaserActivty
+        self.currentOdometer()
+        self.currentUser.end_time = datetime.now()
+        
+        # log laser activity to GC
+        self.postLaserSession(self.currentUser)
+        self.currentUser = None
    
     def fetch_access_list(self):
         """
@@ -181,3 +185,19 @@ class SessionManager:
         resp = requests.post(reporting_URL, data, headers=headers)
         #print(resp.content)
         return resp
+
+    def postLaserSession(self,currSession):
+        print('posting LaserSession for '+ currSession.credential)
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        reporting_URL = os.environ['ACEGC_BASE_URL'] + "/lasersessions/"
+
+        data = {
+            'credential': currSession.credential,
+            'start_time': currSession.start_time,
+            'end_time': currSession.end_time,
+            'start_odo': currSession.start_odo,
+            'end_odo': currSession.end_odo,
+        }
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        resp = requests.post(reporting_URL, data, headers=headers)
+        #print(resp.content)

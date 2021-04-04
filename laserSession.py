@@ -1,4 +1,6 @@
 import os
+from datetime import datetime
+
 
 class LaserSession:
     '''
@@ -8,16 +10,18 @@ class LaserSession:
     def __init__(self, userDict, startingOdometer=0):
         self.credential = userDict['RFID']
         self.name = userDict['First Name'] + ' ' + userDict['Last Initial']
-        self.startingOdometer = startingOdometer
-        self.endOdometer = startingOdometer
+        self.start_odo = startingOdometer
+        self.end_odo = startingOdometer
         self.LASER_COST = os.environ.get('ACEGC_LASER_COST', 0.5)
+        self.start_time = datetime.now()
+        self.end_time = datetime.now()
 
     def calculate_firing_time(self):
         """
         Subtracts the session starting odometer reading from the current odometer reading.
         """
         #TODO: document units
-        return self.endOdometer - self.startingOdometer
+        return self.end_odo - self.start_odo
     
     def calculate_session_cost(self):
         """
