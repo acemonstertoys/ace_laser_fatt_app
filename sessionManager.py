@@ -122,9 +122,8 @@ class SessionManager:
 
     def logout(self, credential):
         self.laserInterface.disable()
-        self.currentOdometer()
         self.currentUser.end_time = datetime.now()
-        
+        self.currentOdometer()
         # log laser activity to GC
         self.postLaserSession(self.currentUser)
         self.currentUser = None
@@ -200,4 +199,4 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         resp = requests.post(reporting_URL, data, headers=headers)
-        #print(resp.content)
+        print(resp.content)
