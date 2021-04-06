@@ -192,6 +192,7 @@ class SessionManager:
 
         data = {
             'credential': currSession.credential,
+            'member_id': currSession.member_id,
             'start_time': currSession.start_time,
             'end_time': currSession.end_time,
             'start_odo': currSession.start_odo,

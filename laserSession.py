@@ -10,6 +10,7 @@ class LaserSession:
     def __init__(self, userDict, startingOdometer=0):
         self.credential = userDict['RFID']
         self.name = userDict['First Name'] + ' ' + userDict['Last Initial']
+        self.member_id = userDict['UID']
         self.start_odo = startingOdometer
         self.end_odo = startingOdometer
         self.LASER_COST = os.environ.get('ACEGC_LASER_COST', 0.5)
