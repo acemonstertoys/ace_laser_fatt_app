@@ -127,6 +127,9 @@ class SessionManager:
         # log laser activity to GC
         self.postLaserSession(self.currentUser)
         self.currentUser = None
+        # update current filter usage time
+        if self.currentFilter != None:
+            self.currentFilter.updateRuntime()
    
     def fetch_access_list(self):
         """
