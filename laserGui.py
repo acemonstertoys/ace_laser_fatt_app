@@ -106,6 +106,7 @@ def setUpUncertified(userName):
 
 def setUpCertified():
     print("setting up Certified...")
+    app.bg = MAIN_COLOR
     updateFilterData()
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
