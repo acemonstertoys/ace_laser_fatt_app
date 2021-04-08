@@ -88,18 +88,21 @@ class Filter:
         """
         print('Filter updateRuntime...')
         currentUsage = self.endOdometer - self.startOdometer
-        totalUsage = currentUsage + self.recordedUsage
-        # update GC
-        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
-        #filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
-        filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
-        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        data = {
-            #'id': + self.filterId,
-            'seconds_used': totalUsage,
-        }
-        resp = requests.patch(filter_API_URL, data, headers=headers)
-        print(resp.content)
+        if currentUsage > 0:
+            totalUsage = self.recordedUsage + currentUsage
+            # update GC
+            GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+            #filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
+            filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
+            headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+            data = {
+                #'id': + self.filterId,
+                'seconds_used': totalUsage,
+            }
+            resp = requests.patch(filter_API_URL, data, headers=headers)
+            print(resp.content)
+            self.recordedUsage = totalUsage
+            self.startOdometer = self.endOdometer
 
     def calcRemainingTime(self):
         """
