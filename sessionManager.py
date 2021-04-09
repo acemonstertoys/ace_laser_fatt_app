@@ -137,7 +137,7 @@ class SessionManager:
         The json list contains only those user allowed to use the laser.
         """
         print("fetching access list...")
-        ACCESS_URL = os.getenv("ACE_ACCESS_URL")
+        ACCESS_URL = os.environ['ACE_ACCESS_URL']
         EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
 
         body = {'ace_export_token': EXPORT_TOKEN}
