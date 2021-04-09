@@ -170,7 +170,7 @@ userNameText = Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1
 Box(sideBar, width="fill", height=45) # spacer
 sideBarAlert = Box(sideBar, width="fill", visible=False)
 # GIF and PNG are supported, except macOS which only supports GIF
-Picture(sideBarAlert, image="./images/alert.gif")
+Picture(sideBarAlert, image="/home/pi/laserGui/images/alert.gif")
 Text(sideBarAlert, text="Change Filter!", size=24, color="yellow")
 Box(sideBar, width="fill", height=45, align="bottom") # spacer
 cfButton = PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom")
