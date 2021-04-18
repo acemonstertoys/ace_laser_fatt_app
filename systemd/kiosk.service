@@ -1,0 +1,17 @@
+[Unit]
+Description=Laser App Kiosk
+Wants=graphical.target
+After=graphical.target
+
+[Service]
+Environment=DISPLAY=:0.0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+EnvironmentFile=/home/pi/laserGui/prod.env
+Type=simple
+ExecStart=python3 /home/pi/laserGui/laserGui.py
+Restart=on-abort
+User=root
+
+[Install]
+WantedBy=graphical.target
+
