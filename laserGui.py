@@ -28,7 +28,6 @@ def updateFilterData():
     filterTypeText.value = data[0]
     filterTimeText.value = str(data[1]) + ' Min.'
 
-
 def updateLaserOdometer():
     print("updating odometer")
     odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentOdometer())
@@ -87,7 +86,7 @@ def handleChangeFilter(filterObj):
     setUpCertified()
 
 def setUpWaiting():
-    print("setting up Waiting...")
+    #print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
     hideCertified()
@@ -98,14 +97,14 @@ def setUpWaiting():
     welcomeBox.visible = True
 
 def setUpUncertified(userName):
-    print("setting up Uncertified...")
+    #print("setting up Uncertified...")
     app.bg = UNAUTH_COLOR
     welcomeBox.visible = False
     noCertBox.visible = True
     app.after(7000, setUpWaiting)
 
 def setUpCertified():
-    print("setting up Certified...")
+    #print("setting up Certified...")
     app.bg = MAIN_COLOR
     updateFilterData()
     if sessionManager.is_filter_change_needed():
@@ -118,29 +117,31 @@ def setUpCertified():
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
-    app.repeat(60000, updateLaserOdometer) # Schedule call to odometer time very minute
+    # Schedule call to read odometer based LASER_ODO_POLLING env var
+    ODO_INTERVAL = os.environ.get('LASER_ODO_POLLING', 15)
+    app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
     updateLaserOdometer()
     odoBox.visible = True
 
 def hideCertified():
-    print("hiding Certified...")
+    #print("hiding Certified...")
     app.cancel(updateLaserOdometer)
     sideBar.visible = False
     odoBox.visible = False
 
 def setUpChangeFilter():
-    print("setting up Change Filter...")
+    #print("setting up Change Filter...")
     hideCertified()
     app.bg = CHANGE_FILTER_COLOR
     changeFilterBox.visible  = True
 
 def setUpNewFilter():
-    print("setting up New Filter...")
+    #print("setting up New Filter...")
     changeFilterBox.visible = False
     newFilterBox.visible = True
 
 def setUpExistingFilter():
-    print("setting up Existing Filter...")
+    #print("setting up Existing Filter...")
     changeFilterBox.visible = False
     usedFilterBox.visible = True
     # tear down filter buttons
