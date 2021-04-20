@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from filter import Filter, FilterType
 from guizero import App, Box, Picture, PushButton, Text
@@ -27,11 +28,18 @@ def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
     filterTimeText.value = str(data[1]) + ' Min.'
+    if sessionManager.is_filter_change_needed():
+        sideBarAlert.visible = True
+        sideBar.bg = SIDE_ALERT_COLOR
+    else:
+        sideBarAlert.visible = False
+        sideBar.bg = SIDE_COLOR
 
 def updateLaserOdometer():
     print("updating odometer")
     odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentOdometer())
     odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
+    updateFilterData()
 
 def handleFobTag(event_data):
     #print("handleFobTag()...")
@@ -107,12 +115,6 @@ def setUpCertified():
     #print("setting up Certified...")
     app.bg = MAIN_COLOR
     updateFilterData()
-    if sessionManager.is_filter_change_needed():
-        sideBarAlert.visible = True
-        sideBar.bg = SIDE_ALERT_COLOR
-    else:
-        sideBarAlert.visible = False
-        sideBar.bg = SIDE_COLOR
     userNameText.value =  sessionManager.currentUser.name
     sideBar.visible = True
     welcomeBox.visible = False
