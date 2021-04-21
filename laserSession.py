@@ -13,7 +13,7 @@ class LaserSession:
         self.member_id = userDict['UID']
         self.start_odo = startingOdometer
         self.end_odo = startingOdometer
-        self.LASER_COST = os.environ.get('ACEGC_LASER_COST', 0.5)
+        self.LASER_COST = float(os.environ.get('ACEGC_LASER_COST', '0.5'))
         self.start_time = datetime.now()
         self.end_time = datetime.now()
 
