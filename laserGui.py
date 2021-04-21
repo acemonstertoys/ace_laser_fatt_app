@@ -27,7 +27,7 @@ def updateTime():
 def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
-    filterTimeText.value = str(data[1]) + ' Min.'
+    filterTimeText.value = str(round(data[1])) + ' Min.'
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
         sideBar.bg = SIDE_ALERT_COLOR
@@ -40,6 +40,11 @@ def updateLaserOdometer():
     odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentOdometer())
     odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
     updateFilterData()
+
+def invokeLogout():
+    print("invoking logout")
+    sessionManager.logout()
+    setUpWaiting()
 
 def handleFobTag(event_data):
     #print("handleFobTag()...")
@@ -58,7 +63,10 @@ def handleFobTag(event_data):
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             setUpCertified()
+            LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))
+            app.after((LOGOUT_TIME * 60000), invokeLogout)
         elif result == Auth_Result.LOGGED_OUT:
+            app.cancel(invokeLogout)
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             print("Another user is logged in!!!")
@@ -120,7 +128,7 @@ def setUpCertified():
     welcomeBox.visible = False
     changeFilterBox.visible  = False
     # Schedule call to read odometer based LASER_ODO_POLLING env var
-    ODO_INTERVAL = os.environ.get('LASER_ODO_POLLING', 15)
+    ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))
     app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
     updateLaserOdometer()
     odoBox.visible = True
