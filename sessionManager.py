@@ -39,7 +39,7 @@ class SessionManager:
     # Filter Methods
     def currentFilterData(self):
         """
-        Returns filter type and time remaining on filter
+        Returns filter type and time remaining on filter.
         """
         if self.currentFilter != None:
             return self.currentFilter.filterSummary()
@@ -96,7 +96,7 @@ class SessionManager:
                 self.laserInterface.enable()
             self.postActivityListing(credential,authSuccess)
         elif self.currentUser.credential == credential:
-            self.logout(credential)
+            self.logout()
             result = Auth_Result.LOGGED_OUT
         else:
             result = Auth_Result.ANOTHER_USER_LOGGED_IN
@@ -120,7 +120,7 @@ class SessionManager:
                 break
         return user
 
-    def logout(self, credential):
+    def logout(self):
         self.laserInterface.disable()
         self.currentUser.end_time = datetime.now()
         self.currentOdometer()
