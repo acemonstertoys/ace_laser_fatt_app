@@ -23,7 +23,7 @@ class SessionManager:
         self.laserInterface = Laser()
         self.laserInterface.disable()
 
-    def currentOdometer(self):
+    def update_odometer(self):
         """
         Fetch the current odometer from the Laser
         """
@@ -61,7 +61,7 @@ class SessionManager:
         """
         Calls Filter to create new filter
         """
-        self.currentFilter = Filter.create_new_filter(filterType, self.currentOdometer())
+        self.currentFilter = Filter.create_new_filter(filterType, self.update_odometer())
 
     def fetch_existing_filters(self):
         """
@@ -73,7 +73,7 @@ class SessionManager:
         """
         updates the runtime on the current filter before switching to the passed in the filter
         """
-        odoValue = self.currentOdometer()
+        odoValue = self.update_odometer()
         filterObj.startOdometer = odoValue
         filterObj.endOdometer = odoValue
         if self.currentFilter != None:
@@ -116,14 +116,14 @@ class SessionManager:
             #print(ususerDicter)
             if userDict['RFID'] == credential:
                 print('found!')
-                user = LaserSession(userDict, self.currentOdometer())
+                user = LaserSession(userDict, self.update_odometer())
                 break
         return user
 
     def logout(self):
         self.laserInterface.disable()
         self.currentUser.end_time = datetime.now()
-        self.currentOdometer()
+        self.update_odometer()
         # log laser activity to GC
         self.postLaserSession(self.currentUser)
         self.currentUser = None
