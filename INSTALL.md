@@ -18,7 +18,7 @@ $ sudo apt-get upgrade
 | ACEGC_ASSET_TOKEN | auth token | none, required |
 | ACEGC_BASE_URL | base URL to Grand Central | none, required |
 | ACEGC_LASER_COST | the cost in cents per minute of laser firing | 0.5 |
-| LASER_LOGOUT_TIME | | 40 |
+| LASER_LOGOUT_TIME | number of inactivity minutes which invokes a logout | 40 |
 | LASER_ODO_POLLING | the time interval used to continously poll the laser for odometer reading, in seconds | 15 |
 
 5. Link systemd file from this repo to ```/etc/systemd/system```
