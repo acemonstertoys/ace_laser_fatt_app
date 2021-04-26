@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from filter import Filter, FilterType
 from guizero import App, Box, Picture, PushButton, Text
 from sessionManager import Auth_Result, SessionManager
@@ -16,6 +16,8 @@ CHANGE_FILTER_COLOR = "#90CFEE"
 # Global Variables ----
 taggedFob = ""
 sessionManager = SessionManager()
+last_odo_reading = 0
+last_odo_time = datetime.now()
 
 # Functions -----------
 def updateTime():
@@ -37,9 +39,20 @@ def updateFilterData():
 
 def updateLaserOdometer():
     print("updating odometer")
-    odoBoxOdoText.value = 'ODO: '+ str(sessionManager.currentOdometer())
-    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
-    updateFilterData()
+    global last_odo_reading
+    global last_odo_time
+    odoReading = sessionManager.update_odometer()
+    if odoReading == last_odo_reading: # no activity
+        # check length of session inactivity
+        LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))
+        if datetime.now() > (last_odo_time + timedelta(minutes = LOGOUT_TIME)):
+            invokeLogout()
+    else: # we have activity
+        last_odo_reading = odoReading
+        last_odo_time = datetime.now()
+        odoBoxOdoText.value = 'ODO: '+ str(odoReading)
+        odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
+        updateFilterData()
 
 def invokeLogout():
     print("invoking logout")
@@ -49,7 +62,6 @@ def invokeLogout():
 def handleFobTag(event_data):
     #print("handleFobTag()...")
     global taggedFob
-    global currentLoginUser
     # look for the enter key 
     if ((event_data.tk_event.keycode == 36) or (event_data.tk_event.keysym == "Return")):
         fobNum = int(taggedFob)
@@ -63,10 +75,7 @@ def handleFobTag(event_data):
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             setUpCertified()
-            LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))
-            app.after((LOGOUT_TIME * 60000), invokeLogout)
         elif result == Auth_Result.LOGGED_OUT:
-            app.cancel(invokeLogout)
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             print("Another user is logged in!!!")
