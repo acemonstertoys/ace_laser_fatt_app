@@ -82,6 +82,7 @@ def handleFobTag(event_data):
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
+            sessionManager.fetch_access_list()
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             last_odo_time = datetime.now()
