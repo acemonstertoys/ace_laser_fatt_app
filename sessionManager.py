@@ -4,6 +4,7 @@ from filter import Filter, FilterType
 from laser import Laser
 from laserSession import LaserSession
 import os
+import json
 import requests
 import sys
 
@@ -111,7 +112,7 @@ class SessionManager:
         """
         print('checking for credential: '+ credential +' in access list...')
         user = None
-        accessList = self.fetch_access_list()
+        accessList = self.load_access_list()
         for userDict in accessList:
             #print(ususerDicter)
             if userDict['RFID'] == credential:
@@ -136,6 +137,7 @@ class SessionManager:
         Pulls certified laser RFIDs from URL defined as an environment variable.
         The json list contains only those user allowed to use the laser.
         """
+        #TODO: fetch_access_list() needs to be called periodically 
         print("fetching access list...")
         ACCESS_URL = os.environ['ACE_ACCESS_URL']
         EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
@@ -155,6 +157,8 @@ class SessionManager:
         except requests.exceptions.RequestException as e:
             print(e)
             sys.exit(1)
+        #print(response.content)
+        #print(response.text)
         userList = response.json()
         #print("Length of user list: ",len(userList))
         data = response.content
@@ -166,7 +170,6 @@ class SessionManager:
         """
         Loads the json list of authorized user from file
         """
-        #TODO: Currently not used;
         with open('authorized.json', 'r') as json_file :
             authorized_rfids = json.load(json_file)   
             return authorized_rfids
@@ -184,6 +187,7 @@ class SessionManager:
             'success': authSuccess,
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        #TODO: wrap request in a try
         resp = requests.post(reporting_URL, data, headers=headers)
         #print(resp.content)
         return resp
@@ -202,5 +206,6 @@ class SessionManager:
             'end_odo': currSession.end_odo,
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        #TODO: wrap request in a try
         resp = requests.post(reporting_URL, data, headers=headers)
         print(resp.content)
