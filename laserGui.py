@@ -38,7 +38,7 @@ def updateFilterData():
         sideBar.bg = SIDE_COLOR
 
 def updateLaserOdometer():
-    print("updating odometer")
+    #print("updating odometer")
     global last_odo_reading
     global last_odo_time
     odoReading = sessionManager.update_odometer()
@@ -62,27 +62,35 @@ def invokeLogout():
 def handleFobTag(event_data):
     #print("handleFobTag()...")
     global taggedFob
+    global last_odo_time
     # look for the enter key 
     if ((event_data.tk_event.keycode == 36) or (event_data.tk_event.keysym == "Return")):
-        fobNum = int(taggedFob)
-        fobHex = hex(fobNum).upper().lstrip("0X").zfill(8)
-        print("Fob = "+ fobHex)
+        try:
+            fobNum = int(taggedFob)
+            fobHex = hex(fobNum).upper().lstrip("0X").zfill(8)
+            print("Fob = "+ fobHex)
+            result = sessionManager.authenticate_credential(fobHex)
+        except ValueError as verr:
+            print("Invalid Fob Reading: "+taggedFob)
+            result = Auth_Result.ERROR
+            app.error("Fob Error", "Invalid Fob Reading: "+taggedFob)
+        except Exception as ex:
+            print("Exception thrown in handleFobTag!")
+            result = Auth_Result.ERROR
+            app.error("Auth Error", "Error for fob: "+taggedFob)
 
-        result = sessionManager.authenticate_credential(fobHex)
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
+            last_odo_time = datetime.now()
             setUpCertified()
         elif result == Auth_Result.LOGGED_OUT:
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
-            print("Another user is logged in!!!")
+            #print("Another user is logged in!!!")
             app.info("Fob Info", "Another user is already logged in")
-        else:
-            print("Some sort of error!!!")
-            app.warn("Fob Info", "Some sort of error!!!")
         # clear out tagged capture 
         taggedFob = ""
     else:
@@ -91,6 +99,9 @@ def handleFobTag(event_data):
         #print("keysym =  " + event_data.tk_event.keysym)
         #print("keysym_num =  " + str(event_data.tk_event.keysym_num))
         taggedFob += event_data.key
+        if len(taggedFob) > 10:
+            app.warn("Fob Reading Error", "Value read: "+taggedFob)
+            taggedFob = ""
 
 def handleNewOrganicsFilter():
     #print("handleNewOrganicsFilter...")
@@ -111,7 +122,7 @@ def handleChangeFilter(filterObj):
     setUpCertified()
 
 def setUpWaiting():
-    #print("setting up Waiting...")
+    print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
     hideCertified()
@@ -129,7 +140,7 @@ def setUpUncertified(userName):
     app.after(7000, setUpWaiting)
 
 def setUpCertified():
-    #print("setting up Certified...")
+    print("setting up Certified...")
     app.bg = MAIN_COLOR
     updateFilterData()
     userNameText.value =  sessionManager.currentUser.name
