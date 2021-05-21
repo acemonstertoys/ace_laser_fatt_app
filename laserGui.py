@@ -152,6 +152,7 @@ def setUpCertified():
     ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))
     app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
     updateLaserOdometer()
+    odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
     odoBox.visible = True
 
 def hideCertified():
