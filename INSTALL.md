@@ -25,12 +25,13 @@ $ sudo apt-get upgrade
 ```
 $ sudo ln -s /home/pi/laserGui/systemd/kiosk.service /etc/systemd/system/kiosk.service
 ```
-6. Load them into systemd
-```
-$ sudo systemctl daemon-reload
-```
-7. Enable and start the kiosk service
-```
-$ sudo systemctl enable kiosk.service
-$ sudo systemctl start kiosk.service
-```
+6. Load service into systemd: \
+`sudo systemctl daemon-reload`
+7. Enable the service to start on restart: \
+`sudo systemctl enable kiosk.service`
+8. Start the service immediately: \
+`sudo systemctl start kiosk.service`
+9. If needed, stop the service temporarily: \
+`sudo systemctl stop kiosk.service`
+10. If needed, disable the service until it's enabled again: \
+`sudo systemctl disable kiosk.service`
