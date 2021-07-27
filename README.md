@@ -3,12 +3,16 @@
 ----
 [![Open Source Love svg2](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-<!-- <img src="assets/NNNNNNNNNNNNN" width="400"> -->
-<!-- <h2 align="center">____________________</h2> -->
+
+<img src="assets/20210414_185104.jpg" width="400">
+
+<h2 align="left">Ace laser fob all the things app is a laser cutter access control system</h2>
+
 <!-- <h4 align="center">________________________</h4> -->
 
 # Summary
 ### - *[Project Overview](#project-overview)*
+### -  *[Project Photos](#project-photos)*
 ### -  *[Quick start](#Quick-start)*
 ### -  *[Installation](#Installation)*
 ### -  *[For developers](#For-developers)*
@@ -19,17 +23,22 @@
 
 ---
 # Project Overview
-### Ace laser fob all the things app 
-#### Is a *laser cutter* access control system that
-#### allows Ace Makerspace to charge $/min for laser cutting time. 
-#### It allows users to log laser usage time, using *RFID keys* to authenticate which user is actively logged in. 
+### Ace laser fob all the things app is a *laser cutter* access control system that allows Ace Makerspace to charge $/min for laser cutting time.  It allows users to log laser usage time, using *RFID keys* to authenticate which user is actively logged in. 
 
 ##### The hardware used is: a Raspberry Pi, a touch screen, a RFID reader and a custom built electronic laser cutter interface built upon a teensy microcontroller.
 
 -----------------
-# Screenshots
-- <img src="assets/_____________" width="400"> 
-- 
+# Project Photos
+- <img src="assets/20210414_180447.jpg" width="400"> 
+- <img src="assets/20210414_185104.jpg" width="400"> 
+- <img src="assets/20210414_185201.jpg" width="400"> 
+- <img src="assets/20210414_185207.jpg" width="400"> 
+- <img src="assets/20210711_083104.jpg" width="400"> 
+- <img src="assets/20210711_083122.jpg" width="400"> 
+- <img src="assets/20210711_083131.jpg" width="400"> 
+- <img src="assets/20210711_083243.jpg" width="400"> 
+- <img src="assets/20210711_083311.jpg" width="400"> 
+ 
 
 # Quick start
 ### for all the commands in one block
@@ -326,7 +335,6 @@ requests.get("<ACEGC_BASE_URL>/filters/", headers=header)
 
 # Hardware
 ### NOTE: the hardware is intended for experienced electrical engineers only. Your expected to build your own hardware interface with the laser you are using. We are only showing an example of how we've done ours.
-![](assets/2021-07-22-16-11-24.png)
 ### Teensy Interface
 #### The interface is documented here: https://github.com/acemonstertoys/laser-rfid
 ### Bom
@@ -334,12 +342,19 @@ requests.get("<ACEGC_BASE_URL>/filters/", headers=header)
 | ---- | ----------------- |
 | USB cable | 1 |
 | Raspberry Pi 3 | 1 |
-| Teensy 3.2 | 1 |
+| Teensy 2.0 24 pin version | 1 |
 | Touch Screen (Raspberry Pi compatible) | 1 |
 | RFID Reader (USB) | 1 |
+| BC550 | 1 | 
 
-### Circuit diagram
+### Circuit
+- <img src="assets\circuit_board_topside.jpg" width="400"> 
+- <img src="assets\circuit_board_bottom.jpg" width="400"> 
+- <img src="assets\circuit_board_transistor_backside.jpg" width="400"> 
+- <img src="assets\circuit_board_transistor.jpg" width="400">
 ### Schematic
+- <img src="assets/schematic_diagram.png" width="400"> 
+- <img src="assets/2021-07-26-17-16-01.png" width="400"> 
 -----------------
 # For developers
 
