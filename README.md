@@ -23,9 +23,10 @@
 
 ---
 # Project Overview
-### Ace laser fob all the things app is a *laser cutter* access control system that allows Ace Makerspace to charge $/min for laser cutting time.  It allows users to log laser usage time, using *RFID keys* to authenticate which user is actively logged in. 
+### Ace laser fob all the things app is a laser cutter access control system that allows Ace Makerspace to charge $/min for laser cutting time. It enables users to log laser usage time, using RFID keys to authenticate which user is actively logged in.
+ 
 
-##### The hardware used is: a Raspberry Pi, a touch screen, a RFID reader and a custom built electronic laser cutter interface built upon a teensy microcontroller.
+### The hardware used is a Raspberry Pi, a touch screen, an RFID reader, and a custom-built electronic laser cutter interface built upon a teensy microcontroller.
 
 -----------------
 # Project Photos
