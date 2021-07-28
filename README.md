@@ -4,7 +4,9 @@
 [![Open Source Love svg2](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<img src="assets/20210711_083104.jpg" width="400"> 
 <img src="assets/20210414_185104.jpg" width="400">
+
 
 <h2 align="left">Ace laser fob all the things app is a laser cutter access control system</h2>
 
@@ -49,8 +51,8 @@
 sudo apt-get update
 sudo apt-get upgrade
 cd ~
-git clone https://github.com/acemonstertoys/fatt_device
-cd ./fatt_device
+git clone https://github.com/acemonstertoys/ace_laser_fatt_app
+cd ./ace_laser_fatt_app
 pip install -r requirements.txt
 touch prod.env
 nano prod.env # add env variables here
@@ -81,8 +83,8 @@ sudo apt-get upgrade
 #### Clone this repo into a directory named *laserGui* in the pi user's home directory. This path is referenced in the service that starts the app.
 ```bash
 cd ~
-git clone https://github.com/acemonstertoys/fatt_device
-cd ./fatt_device
+git clone https://github.com/acemonstertoys/ace_laser_fatt_app
+cd ./ace_laser_fatt_app
 ```
 ### 3. Install dependencies using requirements.txt: 
 ##### The laser GUI app is a python built on [guizero](https://lawsie.github.io/guizero/), and as such it has a number of dependencies. 
@@ -149,27 +151,26 @@ sudo systemctl disable kiosk.service
 ### Session Manager Data Types
 | Name | Datatype | value |
 | --- | --- | --- |
-| credential   | ????? |  userDict['RFID'] | 
+| credential   | String |  userDict['RFID'] | 
 | authSuccess  | Boolean |   True/False | 
 | member_id    | String |  userDict['UID'] | 
 | start_time   | String |  UTC String EX'2021-07-24 16:03:43.415006' | 
 | end_time     | String |  UTC String EX'2021-07-24 16:03:43.415006' (python datetime.now()) | 
-| start_odo    | int |   Ex 0 | 
-| end_odo      | int |  laser.py laserInterface.odometer EX: '0' | 
+| start_odo    | int (seconds) |  Ex 0 | 
+| end_odo      | int (seconds) |  EX: 0 laser.py laserInterface.odometer  | 
 | CURRENT_TIME | String |  UTC String EX'2021-07-24 16:03:43.415006' | 
 
 
 ### Filter Data Types
 | Name | Datatype | value |
 | --- | --- | --- |
-| filterId         | int?????? |  |
-| filterType       | int?????? |  |
-| recordedUsage    | int?????? |  |
-| odometerReading  | int?????? |   # TODO: what units is the odometer in? |
-| odometerReading  | int?????? |  |
-| GREEN_ORGANICS   | int (minutes) |  Green organics filters can be used for a total of 140 minutes  |
-| WHITE_SYNTHETICS | int (minutes) |  White synthetics filter can be used for a total of 60 minutes  |
-| Unknown          | int (minutes) |  Unknown filter type |
+| filterId         | int |  |
+| filterType       | Enum FilterType |  |
+| --> GREEN_ORGANICS   | int (minutes) |  Green organics filters can be used for a total of 140 minutes  |
+| --> WHITE_SYNTHETICS | int (minutes) |  White synthetics filter can be used for a total of 60 minutes  |
+| --> Unknown          | int (minutes) |  Unknown filter type |
+| recordedUsage    | int |  |
+| odometerReading  | int (seconds) |  |
 
 ----
 

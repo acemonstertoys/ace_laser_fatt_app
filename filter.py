@@ -37,7 +37,7 @@ class Filter:
         self.filterId = filterId
         self.filterType = filterType
         self.recordedUsage = recordedUsage
-        self.startOdometer = odometerReading    # TODO: what units is the odometer in?
+        self.startOdometer = odometerReading    # units is the odometer are in is Seconds
         self.endOdometer = odometerReading
 
     @classmethod
