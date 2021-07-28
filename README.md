@@ -151,26 +151,26 @@ sudo systemctl disable kiosk.service
 ### Session Manager Data Types
 | Name | Datatype | value |
 | --- | --- | --- |
-| credential   | String |  userDict['RFID'] | 
+| credential   | String ( hex )| see userDict['RFID'] | 
 | authSuccess  | Boolean |   True/False | 
-| member_id    | String |  userDict['UID'] | 
+| member_id    | String |  see userDict['UID'] | 
 | start_time   | String |  UTC String EX'2021-07-24 16:03:43.415006' | 
 | end_time     | String |  UTC String EX'2021-07-24 16:03:43.415006' (python datetime.now()) | 
-| start_odo    | int (seconds) |  Ex 0 | 
-| end_odo      | int (seconds) |  EX: 0 laser.py laserInterface.odometer  | 
+| start_odo    | long (seconds) |  Ex 0 | 
+| end_odo      | long (seconds) |  EX: 0 laser.py laserInterface.odometer  | 
 | CURRENT_TIME | String |  UTC String EX'2021-07-24 16:03:43.415006' | 
 
 
 ### Filter Data Types
 | Name | Datatype | value |
 | --- | --- | --- |
-| filterId         | int |  |
+| filterId         | long |  |
 | filterType       | Enum FilterType |  |
-| --> GREEN_ORGANICS   | int (minutes) |  Green organics filters can be used for a total of 140 minutes  |
-| --> WHITE_SYNTHETICS | int (minutes) |  White synthetics filter can be used for a total of 60 minutes  |
-| --> Unknown          | int (minutes) |  Unknown filter type |
-| recordedUsage    | int |  |
-| odometerReading  | int (seconds) |  |
+| --> GREEN_ORGANICS   | long (minutes) |  Green organics filters can be used for a total of 140 minutes  |
+| --> WHITE_SYNTHETICS | long (minutes) |  White synthetics filter can be used for a total of 60 minutes  |
+| --> Unknown          | long (minutes) |  Unknown filter type |
+| recordedUsage    | long |  |
+| odometerReading  | long (seconds) |  |
 
 ----
 
