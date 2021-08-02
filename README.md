@@ -195,6 +195,17 @@ The json list contains only those user allowed to use the laser.
     }
 }
 ```
+##### Response Example:
+
+```json
+{
+    <LIST> returns the current list of users allowed to use the laser.
+}
+```
+| Code | Description |
+| ---- | ----------------- |
+| 200  | OK                |
+
 ## postActivityListing
 ### POST /<ACE_ACCESS_URL>/activitylistings/
 <!-- ### Description:        -->
@@ -263,7 +274,7 @@ Creates a new filter in Grand Central
 },
 "body": {
     'seconds_used': 0,
-    'seconds_used': <totalUsage>, # TODO line 40: what units is the odometer in?
+    'seconds_used': <totalUsage>,
     'filter_type': <filterType>,
 
 }
