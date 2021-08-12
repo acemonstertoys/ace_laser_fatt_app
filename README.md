@@ -196,11 +196,21 @@ The json list contains only those user allowed to use the laser.
 }
 ```
 ##### Response Example:
-
 ```json
-{
-    <LIST> returns the current list of users allowed to use the laser.
-}
+
+// <LIST> returns the current list of users allowed to use the laser.
+[
+    {
+        "RFID": <STRING>,
+        "First Name": <STRING>,
+        "Last Initial": <STRING upper case length 1> , 
+        "UID": <int>
+    },
+    {...}
+    ,
+    ....
+]
+
 ```
 | Code | Description |
 | ---- | ----------------- |
