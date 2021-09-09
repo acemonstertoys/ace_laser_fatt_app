@@ -4,28 +4,44 @@
 [![Open Source Love svg2](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<img src="assets/20210711_083104.jpg" width="400"> 
-<img src="assets/20210414_185104.jpg" width="400">
+<p float="left" align="center">
+<img src="assets/20210711_083104.jpg" width="48%"> 
+<img src="assets/20210414_185104.jpg" width="48%">
+</p>
 
+<h2 align="left">Ace_laser_FATT_app is a laser cutter access control system</h2>
 
-<h2 align="left">Ace laser fob all the things app is a laser cutter access control system</h2>
 
 <!-- <h4 align="center">________________________</h4> -->
 
 # Summary
+This repository contains the code we are currently using to track laser usage for our membership, while this is still in the early stages with more features and better stability planned, it is fully usable and includes the following features:
+- Gate user access based on credentials associated with their account (using a USB RFID reader and crosschecking against an access list)
+- Activate and deactivate the Laser for cutting (using a teensy connected to the Laser Cutter)
+- Periocally get an update for Laser usage (the Laser reports an odometer - in seconds - which we store on the teensy and check for updates)
+- Track a user session to gather the amount of firing time the member used (this is uploaded to our database from which we generate invoices through a custom Wordpress plugin)
+- Allow users to select which filter they are using
+- Track filter usage against firing time and upload to our database for persistence
+- Warn users when a filter requires changing
+
+This project and its documentation are recommended for parties with intermediate-advanced technical knowledge due to its unfinished state, if you wish to implement it for your own makerspace / hackerspace we incourage you to make sure you are comfortable with Raspberry Pis, Linux, programmable microcontrollers, Python, basic electronics and have the ability to make your own APIs.
+We hope to be able to provide better documentation, install procedures and open source our API endpoints and Wordpress plugin in the future along side the stability improvements and additional features.
+
+
+# Contents
 ### - *[Project Overview](#project-overview)*
 ### -  *[Project Photos](#project-photos)*
-### -  *[Quick start](#Quick-start)*
-### -  *[Installation](#Installation)*
-### -  *[For developers](#For-developers)*
-### -  *[Contributors](#Contributors)*
-### -  *[API](#API)*
-### -  *[License](#License)*
+### -  *[Quick Start](#quick-start)*
+### -  *[Installation](#installation)*
+### -  *[For Developers](#for-developers)*
+### -  *[Contributors](#contributors)*
+### -  *[API](#api)*
+### -  *[License](#license)*
 
 
 ---
 # Project Overview
-### Ace laser fob all the things app is a laser cutter access control system that allows Ace Makerspace to charge $/min for laser cutting time. It enables users to log laser usage time, using RFID keys to authenticate which user is actively logged in.
+### Ace laser FATT (Fob All The Things) app is a laser cutter access control system that allows Ace Makerspace to charge for laser cutting time and track filter usage. It enables users to log laser usage time, using RFID keys to authenticate which user is actively logged in.
  
 
 ### The hardware used is a Raspberry Pi, a touch screen, an RFID reader, and a custom-built electronic laser cutter interface built upon a teensy microcontroller.
@@ -43,7 +59,7 @@
 - <img src="assets/20210711_083311.jpg" width="400"> 
  
 
-# Quick start
+# Quick Start
 ### for all the commands in one block
 
 ##### for more details about the commands see *[Installation](#Installation)*
@@ -379,7 +395,7 @@ requests.get("<ACEGC_BASE_URL>/filters/", headers=header)
 - <img src="assets/schematic_diagram.png" width="400"> 
 - <img src="assets/2021-07-26-17-16-01.png" width="400"> 
 -----------------
-# For developers
+# For Developers
 
 ### What each file does
 *Graphical User Interace to the makerspace's laser.*
