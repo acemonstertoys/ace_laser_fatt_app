@@ -408,6 +408,14 @@ requests.get("<ACEGC_BASE_URL>/filters/", headers=header)
 * requirements.txt — python library dependencies
 * sessionManager.py — manages interactions between the GUI and users and filters
 
+### Testing and Local Dev
+
+Set the `LASERGUI_ROOT` env variable to use a different install location for testing. If
+this is not set, the default `/home/pi/laserGui/` will be used.
+
+Set the `LASERGUI_MOCK` to use a mock `Laser` class that will not try and talk
+to the serial port but instead just do nothing. (This is pretty incomplete at the moment, but
+it's enough to let the app run)
 
 -----------------
 # Contributors

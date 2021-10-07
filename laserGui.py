@@ -1,8 +1,15 @@
 import os
 from datetime import datetime, timedelta
 from filter import Filter, FilterType
-from guizero import App, Box, Picture, PushButton, Text
+from guizero import App, Box, Picture, PushButton, Text, tkmixins
 from sessionManager import Auth_Result, SessionManager
+
+# This fixes button background color on Mac (and maybe elsewhere too)
+tkmixins.ColorMixin.BG_KEYS.append( "highlightbackground")
+
+# Allow overriding default install location for LaserGUI
+LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
+
 
 # Contant Color Values
 MAIN_COLOR = "#3636B2"
@@ -25,6 +32,18 @@ def updateTime():
     format = "%A, %B %d, %Y | %I:%M%p"
     nowStr = now.strftime(format)
     dateTimeText.value = nowStr
+
+def updateSyncTime():
+    syncTime =sessionManager.get_auth_list_time()
+    syncTimeText.value = "Last update: "+ syncTime.strftime( "%b %d, %I:%M %p")
+
+def checkAuthCurrent():
+    lastSyncTime =sessionManager.get_auth_list_time()
+    currentTime = datetime.now()
+    authListAge = currentTime - lastSyncTime
+    if (authListAge > timedelta( hours=1 )):
+        print ("Auth list stale, refetching")
+        sessionManager.fetch_access_list()
 
 def updateFilterData():
     data = sessionManager.currentFilterData()
@@ -69,13 +88,13 @@ def handleFobTag(event_data):
             fobNum = int(taggedFob)
             fobHex = hex(fobNum).upper().lstrip("0X").zfill(8)
             print("Fob = "+ fobHex)
-            result = sessionManager.authenticate_credential(fobHex)
+            result = sessionManager.authenticate_credential(fobHex, retries=1 )
         except ValueError as verr:
             print("Invalid Fob Reading: "+taggedFob)
             result = Auth_Result.ERROR
             app.error("Fob Error", "Invalid Fob Reading: "+taggedFob)
         except Exception as ex:
-            print("Exception thrown in handleFobTag!")
+            print("Exception thrown in handleFobTag!", ex)
             result = Auth_Result.ERROR
             app.error("Auth Error", "Error for fob: "+taggedFob)
 
@@ -88,6 +107,7 @@ def handleFobTag(event_data):
             last_odo_time = datetime.now()
             setUpCertified()
         elif result == Auth_Result.LOGGED_OUT:
+            checkAuthCurrent()
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             #print("Another user is logged in!!!")
@@ -121,6 +141,10 @@ def handleChangeFilter(filterObj):
     sessionManager.switch_to_filter(filterObj)
     usedFilterBox.visible = False
     setUpCertified()
+
+def syncAuthList():
+    sessionManager.fetch_access_list()
+    updateSyncTime()
 
 def setUpWaiting():
     print("setting up Waiting...")
@@ -192,6 +216,7 @@ def setUpExistingFilter():
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
 app.font="DejaVu Serif"
 app.text_color="white"
+
 app.set_full_screen()   # ESC will exit full screen
 app.when_key_pressed = handleFobTag
 
@@ -203,7 +228,7 @@ userNameText = Text(opInfoGrid, text="[Name]", size=16, color="black", grid=[0,1
 Box(sideBar, width="fill", height=45) # spacer
 sideBarAlert = Box(sideBar, width="fill", visible=False)
 # GIF and PNG are supported, except macOS which only supports GIF
-Picture(sideBarAlert, image="/home/pi/laserGui/images/alert.gif")
+Picture(sideBarAlert, image= os.path.join( LASERGUI_ROOT, "images", "alert.gif") )
 Text(sideBarAlert, text="Change Filter!", size=24, color="yellow")
 Box(sideBar, width="fill", height=45, align="bottom") # spacer
 cfButton = PushButton(sideBar, command=setUpChangeFilter, text="Change Filter", padx=30, align="bottom")
@@ -233,6 +258,11 @@ welcomeBox = Box(app, align="top", width="fill")
 Box(welcomeBox, width="fill", height=60) # spacer
 Text(welcomeBox, text="Welcome", size=72)
 Text(welcomeBox, text="Tap your fob to begin", size=36)
+syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
+updateSyncTime()
+btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
+btnSyncNow.highlightbackground = "blue"
+
 
 # UNCERTIFIED State
 noCertBox = Box(app, align="top", width="fill", visible=False)
@@ -282,6 +312,10 @@ Box(usedFilterBox, width="fill", height=60) # spacer
 Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 Box(usedFilterBox, width="fill", height=15) # spacer
 usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
+
+
+# Check auth list is up to date
+checkAuthCurrent()
 
 print("App ready to display...")
 app.display()

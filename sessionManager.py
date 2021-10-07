@@ -2,11 +2,14 @@ from datetime import datetime
 from enum import Enum
 from filter import Filter, FilterType
 from laser import Laser
+from mockLaser import MockLaser
 from laserSession import LaserSession
 import os
 import json
 import requests
 import sys
+
+AUTHLIST_FILE = "authorized.json"
 
 # Global Variables ----
 class Auth_Result(Enum):
@@ -21,7 +24,13 @@ class SessionManager:
         # Instance variables
         self.currentUser = currentUser
         self.currentFilter = currentFilter
-        self.laserInterface = Laser()
+
+        # Should we use a mock laser for dev testing?
+        if 'LASERGUI_MOCK' in os.environ:
+            self.laserInterface = MockLaser()
+        else:
+            self.laserInterface = Laser()
+
         self.laserInterface.disable()
 
     def update_odometer(self):
@@ -83,7 +92,7 @@ class SessionManager:
         self.currentFilter = filterObj
 
     # Authentication Methods
-    def authenticate_credential(self, credential):
+    def authenticate_credential(self, credential, retries ):
         """
         Called when a fob is tagged.
         """
@@ -101,6 +110,13 @@ class SessionManager:
             result = Auth_Result.LOGGED_OUT
         else:
             result = Auth_Result.ANOTHER_USER_LOGGED_IN
+
+        # If we failed to authenticate but have some retries, try again
+        if result == Auth_Result.NOT_AUTHENTICATED and retries > 0:
+            print("Auth failed, refetching list and retrying...")
+            self.fetch_access_list()
+            return self.authenticate_credential( credential, retries-1 )
+
         return result
     
     def authorized_user_for_credential(self, credential):
@@ -137,8 +153,6 @@ class SessionManager:
         Pulls certified laser RFIDs from URL defined as an environment variable.
         The json list contains only those user allowed to use the laser.
         """
-        #TODO: fetch_access_list() needs to be called periodically 
-        print("fetching access list...")
         ACCESS_URL = os.environ['ACE_ACCESS_URL']
         EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
 
@@ -162,7 +176,7 @@ class SessionManager:
         userList = response.json()
         #print("Length of user list: ",len(userList))
         data = response.content
-        with open('authorized.json', 'wb') as f:
+        with open(AUTHLIST_FILE, 'wb') as f:
             f.write(data)
         return userList
 
@@ -170,12 +184,18 @@ class SessionManager:
         """
         Loads the json list of authorized user from file
         """
-        with open('authorized.json', 'r') as json_file :
+        with open(AUTHLIST_FILE, 'r') as json_file :
             authorized_rfids = json.load(json_file)   
             return authorized_rfids
 
+    def get_auth_list_time(self):
+        filetime = os.path.getmtime(AUTHLIST_FILE)
+        return datetime.fromtimestamp(filetime )
+
+
     def postActivityListing(self, credential, authSuccess):
-        #print('posting ActivityListing for '+ credential, authSuccess)
+        print('posting ActivityListing for '+ credential, authSuccess)
+
         ASSET_ID = os.environ['ACEGC_ASSET_ID']
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         reporting_URL = os.environ['ACEGC_BASE_URL'] + "/activitylistings/"
