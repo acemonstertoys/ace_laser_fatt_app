@@ -1,5 +1,5 @@
 import time
-import serial
+from serial import Serial
 
 class Laser:
     '''
@@ -34,7 +34,7 @@ class Laser:
     def __init__(self, port='/dev/ttyACM0', baudrate=9600):
         self.reset_usb()
         time.sleep(1)
-        self.conn = serial.Serial(port, baudrate)
+        self.conn = Serial(port, baudrate)
         self.disable()
         self.odometer = '0'
         self.rfid_flag = '0'

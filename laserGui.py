@@ -10,7 +10,6 @@ tkmixins.ColorMixin.BG_KEYS.append( "highlightbackground")
 # Allow overriding default install location for LaserGUI
 LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
 
-
 # Contant Color Values
 MAIN_COLOR = "#3636B2"
 FILTER_COLOR = "#222270"
@@ -258,10 +257,14 @@ welcomeBox = Box(app, align="top", width="fill")
 Box(welcomeBox, width="fill", height=60) # spacer
 Text(welcomeBox, text="Welcome", size=72)
 Text(welcomeBox, text="Tap your fob to begin", size=36)
+
 syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
 updateSyncTime()
-btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
-btnSyncNow.highlightbackground = "blue"
+
+# Optionally, show a force sync button
+if 'LASERGUI_SYNC_BUTTON' in os.environ:
+    btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
+    btnSyncNow.highlightbackground = "blue"
 
 
 # UNCERTIFIED State
