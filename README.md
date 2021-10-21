@@ -110,16 +110,17 @@ pip install -r requirements.txt
 ### 4. Create a ```prod.env``` file to define the following enviroment vaiables:
 #### Note: They are not stored in this repo as they are considered sensitive information.
 
-| Key               | Description                                                                           | Default Value  |
-| ----------------- | ------------------------------------------------------------------------------------- | -------------- |
-| ACE_ACCESS_URL    | the access list URL                                                                   | none, required |
-| ACE_EXPORT_TOKEN  | used with ACE_ACCESS_URL                                                              | none, required |
-| ACEGC_ASSET_ID    | the Assest ID of the pi                                                               | none, required |
-| ACEGC_ASSET_TOKEN | auth token                                                                            | none, required |
-| ACEGC_BASE_URL    | base URL to Grand Central                                                             | none, required |
-| ACEGC_LASER_COST  | the cost in cents per minute of laser firing                                          | 0.5            |
-| LASER_LOGOUT_TIME | number of inactivity minutes which invokes a logout                                   | 40             |
-| LASER_ODO_POLLING | the time interval used to continously poll the laser for odometer reading, in seconds | 15             |
+| Key                  | Description                                                                           | Default Value  |
+| -------------------- | ------------------------------------------------------------------------------------- | -------------- |
+| ACE_ACCESS_URL       | the access list URL                                                                   | none, required |
+| ACE_EXPORT_TOKEN     | used with ACE_ACCESS_URL                                                              | none, required |
+| ACEGC_ASSET_ID       | the Assest ID of the pi                                                               | none, required |
+| ACEGC_ASSET_TOKEN    | auth token                                                                            | none, required |
+| ACEGC_BASE_URL       | base URL to Grand Central                                                             | none, required |
+| ACEGC_LASER_COST     | the cost in cents per minute of laser firing                                          | 0.5            |
+| LASER_LOGOUT_TIME    | number of inactivity minutes which invokes a logout                                   | 40             |
+| LASER_ODO_POLLING    | the time interval used to continously poll the laser for odometer reading, in seconds | 15             |
+| LASERGUI_SYNC_BUTTON | If present, will show a "Force Sync" button in the GUI                                    | Off             |
 
 #### Example `prod.env` file:
 ```toml
@@ -408,6 +409,14 @@ requests.get("<ACEGC_BASE_URL>/filters/", headers=header)
 * requirements.txt — python library dependencies
 * sessionManager.py — manages interactions between the GUI and users and filters
 
+### Testing and Local Dev
+
+Set the `LASERGUI_ROOT` env variable to use a different install location for testing. If
+this is not set, the default `/home/pi/laserGui/` will be used.
+
+Set the `LASERGUI_MOCK` to use a mock `Laser` class that will not try and talk
+to the serial port but instead just do nothing. (This is pretty incomplete at the moment, but
+it's enough to let the app run)
 
 -----------------
 # Contributors
