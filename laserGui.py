@@ -47,6 +47,8 @@ def checkAuthCurrent():
 def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
+    if sessionManager.currentFilter is not None:
+        filterIDText.value = sessionManager.currentFilter.display_id()
     filterTimeText.value = str(round(data[1])) + ' Min.'
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
@@ -247,7 +249,8 @@ filterStatusBox.bg = FILTER_COLOR
 filterStatusBox.text_size=24
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
 Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
-filterTypeText = Text(filterStatusBox, text="", grid=[1,1])
+filterTypeText = Text(filterStatusBox, text="", grid=[2,1])
+filterIDText = Text(filterStatusBox, text="", grid=[1,1])
 Text(filterStatusBox, text="Filter Time Left: ", grid=[0,2], align="left")
 filterTimeText = Text(filterStatusBox, text="", grid=[1,2], align="left")
 updateFilterData()
