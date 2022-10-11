@@ -120,9 +120,9 @@ class Filter:
 
     def filterSummary(self):
         """
-        Returns filter type and time remaining on filter
+        Returns filter summary and time remaining
         """
-        return self.filterType.stringValue(), self.calcRemainingTime()
+        return self.display_summary(), self.calcRemainingTime()
 
     def display_id(self):
         """
