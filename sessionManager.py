@@ -125,12 +125,13 @@ class SessionManager:
         The access list is a json list of laser authorized user disctionaries.
         Each user dictionary should contain an RFID key, the credential.
         Returns a LaserSession representing the user or none if no match
+        Throws FileNotFoundError if access list is not found
         """
         print('checking for credential: '+ credential +' in access list...')
         user = None
         accessList = self.load_access_list()
         for userDict in accessList:
-            #print(ususerDicter)
+            #print(userDict)
             if userDict['RFID'] == credential:
                 print('found!')
                 user = LaserSession(userDict, self.update_odometer())
@@ -171,13 +172,17 @@ class SessionManager:
         except requests.exceptions.RequestException as e:
             print(e)
             sys.exit(1)
-        #print(response.content)
-        #print(response.text)
         userList = response.json()
-        #print("Length of user list: ",len(userList))
-        data = response.content
-        with open(AUTHLIST_FILE, 'wb') as f:
-            f.write(data)
+        if "error" in userList:
+            #{"error":"Token not sent."}
+            #print(response.content)
+            print(response.text)
+            #TODO handle error!!!
+        else:
+            print("Length of user list: ",len(userList))
+            data = response.content
+            with open(AUTHLIST_FILE, 'wb') as f:
+                f.write(data)
         return userList
 
     def load_access_list(self):
@@ -189,9 +194,11 @@ class SessionManager:
             return authorized_rfids
 
     def get_auth_list_time(self):
+        """
+        Throws FileNotFoundError if AUTHLIST_FILE is not found
+        """
         filetime = os.path.getmtime(AUTHLIST_FILE)
         return datetime.fromtimestamp(filetime )
-
 
     def postActivityListing(self, credential, authSuccess):
         print('posting ActivityListing for '+ credential, authSuccess)

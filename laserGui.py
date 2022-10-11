@@ -33,22 +33,27 @@ def updateTime():
     dateTimeText.value = nowStr
 
 def updateSyncTime():
-    syncTime =sessionManager.get_auth_list_time()
-    syncTimeText.value = "Last update: "+ syncTime.strftime( "%b %d, %I:%M %p")
+    try:
+        syncTime = sessionManager.get_auth_list_time()
+        syncTimeText.value = "Last update: "+ syncTime.strftime( "%b %d, %I:%M %p")
+    except FileNotFoundError:
+        syncTimeText.value = "Auth unsynched."
 
 def checkAuthCurrent():
-    lastSyncTime =sessionManager.get_auth_list_time()
-    currentTime = datetime.now()
-    authListAge = currentTime - lastSyncTime
-    if (authListAge > timedelta( hours=1 )):
-        print ("Auth list stale, refetching")
+    try:
+        lastSyncTime =sessionManager.get_auth_list_time()
+        currentTime = datetime.now()
+        authListAge = currentTime - lastSyncTime
+        if (authListAge > timedelta( hours=1 )):
+            print ("Auth list stale, refetching...")
+            sessionManager.fetch_access_list()
+    except FileNotFoundError:
+        print ("Auth unsynched, refetching...")
         sessionManager.fetch_access_list()
 
 def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
-    if sessionManager.currentFilter is not None:
-        filterIDText.value = sessionManager.currentFilter.display_id()
     filterTimeText.value = str(round(data[1])) + ' Min.'
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
@@ -94,6 +99,10 @@ def handleFobTag(event_data):
             print("Invalid Fob Reading: "+taggedFob)
             result = Auth_Result.ERROR
             app.error("Fob Error", "Invalid Fob Reading: "+taggedFob)
+        except FileNotFoundError as fnf_err:
+            print("FileNotFoundError thrown in handleFobTag!", fnf_err)
+            result = Auth_Result.ERROR
+            app.error("Auth Error", "Authentication not retrieved. Please contact Team Laser.")
         except Exception as ex:
             print("Exception thrown in handleFobTag!", ex)
             result = Auth_Result.ERROR
@@ -102,7 +111,6 @@ def handleFobTag(event_data):
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
             setUpUncertified(fobHex)
-            sessionManager.fetch_access_list()
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             last_odo_time = datetime.now()
@@ -249,8 +257,7 @@ filterStatusBox.bg = FILTER_COLOR
 filterStatusBox.text_size=24
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
 Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
-filterTypeText = Text(filterStatusBox, text="", grid=[2,1])
-filterIDText = Text(filterStatusBox, text="", grid=[1,1])
+filterTypeText = Text(filterStatusBox, text="", grid=[1,1], align="left")
 Text(filterStatusBox, text="Filter Time Left: ", grid=[0,2], align="left")
 filterTimeText = Text(filterStatusBox, text="", grid=[1,2], align="left")
 updateFilterData()
@@ -318,7 +325,6 @@ Box(usedFilterBox, width="fill", height=60) # spacer
 Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 Box(usedFilterBox, width="fill", height=15) # spacer
 usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
-
 
 # Check auth list is up to date
 checkAuthCurrent()
