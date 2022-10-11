@@ -29,8 +29,6 @@ class Laser:
     # laser is firing to the rpi and save it there?
     # Why using such a slow baudrate?  ATTINYs are fast.
 
-    LASER_COST = 0.5
-
     def __init__(self, port='/dev/ttyACM0', baudrate=9600):
         self.reset_usb()
         time.sleep(1)
@@ -130,9 +128,6 @@ class Laser:
     def read_cut_time(self):
         ''' Retrieve odometer from Teensy'''
         self.write('z')
-
-    def cost(self, firing_time):
-        return firing_time / 60 * LASER_COST
 
     def reset(self):
         self.disable()
