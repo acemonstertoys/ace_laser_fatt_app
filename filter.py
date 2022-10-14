@@ -102,6 +102,21 @@ class Filter:
             self.recordedUsage = totalUsage
             self.startOdometer = self.endOdometer
 
+    def retire(self):
+        """
+        Update is_retired flag on GC
+        """
+        print('retiring filter... id='+ self.display_id())
+        # update GC
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        data = {
+            'is_retired':True
+        }
+        resp = requests.patch(filter_API_URL, data, headers=headers)
+        print(resp.content)
+
     def calcRemainingTime(self):
         """
         Green organics filters can be used for a total of 140 minutes.
