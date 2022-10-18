@@ -151,6 +151,11 @@ def handleChangeFilter(filterObj):
     usedFilterBox.visible = False
     setUpCertified()
 
+def handleRetireFilter(filterObj):
+    print('handleRetireFilter... id='+ filterObj.display_id())
+    filterObj.retire()
+    setUpExistingFilter()
+
 def syncAuthList():
     sessionManager.fetch_access_list()
     updateSyncTime()
@@ -181,6 +186,8 @@ def setUpCertified():
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
+    newFilterBox.visible = False
+    usedFilterBox.visible = False
     # Schedule call to read odometer based LASER_ODO_POLLING env var
     ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))
     app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
@@ -206,7 +213,7 @@ def setUpNewFilter():
     newFilterBox.visible = True
 
 def setUpExistingFilter():
-    #print("setting up Existing Filter...")
+    print("setting up Existing Filter...")
     changeFilterBox.visible = False
     usedFilterBox.visible = True
     # tear down filter buttons
@@ -214,12 +221,22 @@ def setUpExistingFilter():
         widget.destroy()
     # populate buttons representing list of existing filters
     filters = sessionManager.fetch_existing_filters()
+    row = 0
     if len(filters)==0:
         # no existing filters, add a button to create a new filter
-        PushButton(usedFilterBtns, command=setUpNewFilter, text="Create New Filter", width=25, pady=15).text_size = 18
+        PushButton(usedFilterBtns, grid=[0,row], command=setUpNewFilter, text="Create New Filter", width=24, pady=12).text_size = 18
+        row += 1
     else:
         for lsrFilter in filters:
-            PushButton(usedFilterBtns, args = [lsrFilter], command=handleChangeFilter, text=lsrFilter.display_summary(), width=25, pady=15).text_size = 18
+            if sessionManager.currentFilter != None and sessionManager.currentFilter.filterId == lsrFilter.filterId:
+                # do not include current filter in the list
+                continue
+            btnText = lsrFilter.display_full_summary()
+            PushButton(usedFilterBtns, grid=[0,row], args = [lsrFilter], command=handleChangeFilter, text=btnText, width=24, pady=12).text_size = 18
+            PushButton(usedFilterBtns, grid=[1,row], args = [lsrFilter], command=handleRetireFilter, text="Retire", width=8, pady=12).text_size = 18
+            row += 1
+    # add the cancel button
+    PushButton(usedFilterBtns, grid=[0,row], command=setUpCertified, text="Cancel", width=24, pady=12).text_size = 18
 
 # App --------------
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
@@ -254,7 +271,7 @@ updateTime()
 # Filter Status: always visible
 filterStatusBox = Box(app, layout="grid", width="fill", height=130, align="bottom") #, border=True)
 filterStatusBox.bg = FILTER_COLOR
-filterStatusBox.text_size=24
+filterStatusBox.text_size=22
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
 Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
 filterTypeText = Text(filterStatusBox, text="", grid=[1,1], align="left")
@@ -267,15 +284,12 @@ welcomeBox = Box(app, align="top", width="fill")
 Box(welcomeBox, width="fill", height=60) # spacer
 Text(welcomeBox, text="Welcome", size=72)
 Text(welcomeBox, text="Tap your fob to begin", size=36)
-
-syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
-updateSyncTime()
-
 # Optionally, show a force sync button
 if 'LASERGUI_SYNC_BUTTON' in os.environ:
+    syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
+    updateSyncTime()
     btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
     btnSyncNow.highlightbackground = "blue"
-
 
 # UNCERTIFIED State
 noCertBox = Box(app, align="top", width="fill", visible=False)
@@ -309,22 +323,26 @@ Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", width=25, pady=15).text_size = 18
 Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", width=25, pady=15).text_size = 18
+Box(changeFilterBox, width="fill", height=15) # spacer
+PushButton(changeFilterBox, command=setUpCertified, text="Cancel", width=25, pady=15).text_size = 18
 
 # New Filter
 newFilterBox = Box(app, align="top", width="fill", visible=False)
-Box(newFilterBox, width="fill", height=60) # spacer
-Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
 Box(newFilterBox, width="fill", height=30) # spacer
+Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
+Box(newFilterBox, width="fill", height=15) # spacer
 PushButton(newFilterBox, command=handleNewOrganicsFilter, text="Green Filter for organics", width=25, pady=15).text_size = 18
 Box(newFilterBox, width="fill", height=15) # spacer
 PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter for synthetics", width=25, pady=15).text_size = 18
+Box(newFilterBox, width="fill", height=15) # spacer
+PushButton(newFilterBox, command=setUpCertified, text="Cancel", width=25, pady=15).text_size = 18
 
 # Existing Filter
 usedFilterBox = Box(app, align="top", width="fill", visible=False)
-Box(usedFilterBox, width="fill", height=60) # spacer
+Box(usedFilterBox, width="fill", height=30) # spacer
 Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 Box(usedFilterBox, width="fill", height=15) # spacer
-usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
+usedFilterBtns = Box(usedFilterBox, layout="grid")
 
 # Check auth list is up to date
 checkAuthCurrent()
