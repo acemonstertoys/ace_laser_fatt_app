@@ -58,14 +58,12 @@ class SessionManager:
 
     def is_filter_change_needed(self):
         """
-        docstring
+        Checks if a filter should be retired.
         """
         if self.currentFilter == None:
             return True
-        elif self.currentFilter.calcRemainingTime() < 10:
-            return True
         else:
-            return False
+            return self.currentFilter.shouldBeRetired()
     
     def create_new_filter(self, filterType):
         """
@@ -187,7 +185,8 @@ class SessionManager:
 
     def load_access_list(self):
         """
-        Loads the json list of authorized user from file
+        Loads the json list of authorized user from file.
+        Throws FileNotFoundError if AUTHLIST_FILE is not found.
         """
         with open(AUTHLIST_FILE, 'r') as json_file :
             authorized_rfids = json.load(json_file)   
@@ -195,7 +194,7 @@ class SessionManager:
 
     def get_auth_list_time(self):
         """
-        Throws FileNotFoundError if AUTHLIST_FILE is not found
+        Throws FileNotFoundError if AUTHLIST_FILE is not found.
         """
         filetime = os.path.getmtime(AUTHLIST_FILE)
         return datetime.fromtimestamp(filetime )
