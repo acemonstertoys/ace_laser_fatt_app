@@ -106,7 +106,7 @@ class Filter:
         """
         Update is_retired flag on GC
         """
-        print('retiring filter... id='+ self.display_id())
+        print('retiring filter... id = %d' % (self.filterId))
         # update GC
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
@@ -133,6 +133,10 @@ class Filter:
         print("calcRemainingTime: "+str(remainingTime))
         return remainingTime
 
+    def shouldBeRetired(self):
+        print('checking shouldBeRetired for Filter: '+ self.display_id())
+        return self.calcRemainingTime() < 10
+
     def filterSummary(self):
         """
         Returns filter summary and time remaining
@@ -147,6 +151,12 @@ class Filter:
 
     def display_summary(self):
         """
-        Returns filter type and display_id() as a single string
+        Returns display_id() and filter type as a single string
         """
         return self.display_id() +" "+ self.filterType.stringValue()
+
+    def display_full_summary(self):
+        """
+        Returns display_id(), filter type and time remaining as a single string
+        """      
+        return self.display_id() +" "+ self.filterType.stringValue() +" ("+ str(round(self.calcRemainingTime())) +" Min.)"
