@@ -273,7 +273,7 @@ filterStatusBox = Box(app, layout="grid", width="fill", height=130, align="botto
 filterStatusBox.bg = FILTER_COLOR
 filterStatusBox.text_size=22
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
-Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
+Text(filterStatusBox, text="Current Filter: ", grid=[0,1], align="right")
 filterTypeText = Text(filterStatusBox, text="", grid=[1,1], align="left")
 Text(filterStatusBox, text="Filter Time Left: ", grid=[0,2], align="left")
 filterTimeText = Text(filterStatusBox, text="", grid=[1,2], align="left")
