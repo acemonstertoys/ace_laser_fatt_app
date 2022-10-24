@@ -7,7 +7,6 @@ from laserSession import LaserSession
 import os
 import json
 import requests
-import sys
 
 AUTHLIST_FILE = "authorized.json"
 
@@ -155,33 +154,31 @@ class SessionManager:
         ACCESS_URL = os.environ['ACE_ACCESS_URL']
         EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
 
+        success = False
         body = {'ace_export_token': EXPORT_TOKEN}
         headers = {'User-Agent': 'Wget/1.20.1 (linux-gnu)'}
         try:
             response = requests.post(ACCESS_URL, body, headers=headers)
+            userList = response.json()
+            if "error" in userList:
+                #{"error":"Token not sent."}
+                #print(response.content)
+                print("Access List "+response.text +" from "+ ACCESS_URL)
+            else:
+                success = True
+                print("Length of user list: ",len(userList))
+                data = response.content
+                with open(AUTHLIST_FILE, 'wb') as f:
+                    f.write(data)
         except requests.exceptions.Timeout:
             #TODO  Maybe set up for a retry, or continue in a retry loop
             print("Timeout connecting to URL")
-            sys.exit(1)
         except requests.exceptions.TooManyRedirects:
             #TODO Tell the user their URL was bad and try a different one
-            print("Invalid URL, exiting")
-            sys.exit(1)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            sys.exit(1)
-        userList = response.json()
-        if "error" in userList:
-            #{"error":"Token not sent."}
-            #print(response.content)
-            print(response.text)
-            #TODO handle error!!!
-        else:
-            print("Length of user list: ",len(userList))
-            data = response.content
-            with open(AUTHLIST_FILE, 'wb') as f:
-                f.write(data)
-        return userList
+            print("Invalid URL")
+        except requests.exceptions.RequestException as ex:
+            print("Exception thrown in fetch_access_list:", ex)
+        return success
 
     def load_access_list(self):
         """
