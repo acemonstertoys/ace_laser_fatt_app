@@ -5,10 +5,7 @@ from guizero import App, Box, Picture, PushButton, Text, tkmixins
 from sessionManager import Auth_Result, SessionManager
 
 # This fixes button background color on Mac (and maybe elsewhere too)
-tkmixins.ColorMixin.BG_KEYS.append( "highlightbackground")
-
-# Allow overriding default install location for LaserGUI
-LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
+tkmixins.ColorMixin.BG_KEYS.append("highlightbackground")
 
 # Contant Color Values
 MAIN_COLOR = "#3636B2"
@@ -19,11 +16,18 @@ SIDE_COLOR = "#63BBE8"
 SIDE_ALERT_COLOR = "#E5008A"
 CHANGE_FILTER_COLOR = "#90CFEE"
 
-# Global Variables ----
+# Global Variables
 taggedFob = ""
 sessionManager = SessionManager()
 last_odo_reading = 0
 last_odo_time = datetime.now()
+
+# Environment Variables
+ACCESS_INTERVAL = int(os.environ.get('ACE_EXPORT_POLLING', '20'))   # minutes
+LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))        # minutes
+ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))       # seconds
+# Allow overriding default install location for LaserGUI
+LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
 
 # Functions -----------
 def updateTime():
@@ -32,24 +36,10 @@ def updateTime():
     nowStr = now.strftime(format)
     dateTimeText.value = nowStr
 
-def updateSyncTime():
-    try:
-        syncTime = sessionManager.get_auth_list_time()
-        syncTimeText.value = "Last update: "+ syncTime.strftime( "%b %d, %I:%M %p")
-    except FileNotFoundError:
-        syncTimeText.value = "Auth unsynched."
-
-def checkAuthCurrent():
-    try:
-        lastSyncTime =sessionManager.get_auth_list_time()
-        currentTime = datetime.now()
-        authListAge = currentTime - lastSyncTime
-        if (authListAge > timedelta( hours=1 )):
-            print ("Auth list stale, refetching...")
-            sessionManager.fetch_access_list()
-    except FileNotFoundError:
-        print ("Auth unsynched, refetching...")
-        sessionManager.fetch_access_list()
+def updateAccessList():
+    print("updateAccessList...")
+    if sessionManager.fetch_access_list() == False:
+        app.error("Network Error", "Hello. We are experiencing Network issues. Unfortunately, this means that we cannot use the laser. Please report issue to #laser or #general and we will work on a fix.")
 
 def updateFilterData():
     data = sessionManager.currentFilterData()
@@ -69,7 +59,6 @@ def updateLaserOdometer():
     odoReading = sessionManager.update_odometer()
     if odoReading == last_odo_reading: # no activity
         # check length of session inactivity
-        LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))
         if datetime.now() > (last_odo_time + timedelta(minutes = LOGOUT_TIME)):
             invokeLogout()
     else: # we have activity
@@ -82,6 +71,7 @@ def updateLaserOdometer():
 def invokeLogout():
     print("invoking logout")
     sessionManager.logout()
+    hideCertified()
     setUpWaiting()
 
 def handleFobTag(event_data):
@@ -110,13 +100,13 @@ def handleFobTag(event_data):
 
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
-            setUpUncertified(fobHex)
+            setUpUncertified()
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             last_odo_time = datetime.now()
             setUpCertified()
         elif result == Auth_Result.LOGGED_OUT:
-            checkAuthCurrent()
+            hideCertified()
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             #print("Another user is logged in!!!")
@@ -156,22 +146,17 @@ def handleRetireFilter(filterObj):
     filterObj.retire()
     setUpExistingFilter()
 
-def syncAuthList():
-    sessionManager.fetch_access_list()
-    updateSyncTime()
-
 def setUpWaiting():
     print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
-    hideCertified()
     noCertBox.visible = False
     changeFilterBox.visible = False
     newFilterBox.visible = False
     usedFilterBox.visible = False
     welcomeBox.visible = True
 
-def setUpUncertified(userName):
+def setUpUncertified():
     #print("setting up Uncertified...")
     app.bg = UNAUTH_COLOR
     welcomeBox.visible = False
@@ -189,14 +174,13 @@ def setUpCertified():
     newFilterBox.visible = False
     usedFilterBox.visible = False
     # Schedule call to read odometer based LASER_ODO_POLLING env var
-    ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))
     app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
     updateLaserOdometer()
     odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
     odoBox.visible = True
 
 def hideCertified():
-    #print("hiding Certified...")
+    print("hiding Certified...")
     app.cancel(updateLaserOdometer)
     sideBar.visible = False
     odoBox.visible = False
@@ -284,12 +268,6 @@ welcomeBox = Box(app, align="top", width="fill")
 Box(welcomeBox, width="fill", height=60) # spacer
 Text(welcomeBox, text="Welcome", size=72)
 Text(welcomeBox, text="Tap your fob to begin", size=36)
-# Optionally, show a force sync button
-if 'LASERGUI_SYNC_BUTTON' in os.environ:
-    syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
-    updateSyncTime()
-    btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
-    btnSyncNow.highlightbackground = "blue"
 
 # UNCERTIFIED State
 noCertBox = Box(app, align="top", width="fill", visible=False)
@@ -344,8 +322,8 @@ Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 Box(usedFilterBox, width="fill", height=15) # spacer
 usedFilterBtns = Box(usedFilterBox, layout="grid")
 
-# Check auth list is up to date
-checkAuthCurrent()
+# Update the access list on a schedule
+app.repeat((ACCESS_INTERVAL * 60000), updateAccessList)
 
 print("App ready to display...")
 app.display()
