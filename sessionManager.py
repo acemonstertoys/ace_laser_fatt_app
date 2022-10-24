@@ -7,7 +7,6 @@ from laserSession import LaserSession
 import os
 import json
 import requests
-import sys
 
 AUTHLIST_FILE = "authorized.json"
 
@@ -58,14 +57,12 @@ class SessionManager:
 
     def is_filter_change_needed(self):
         """
-        docstring
+        Checks if a filter should be retired.
         """
         if self.currentFilter == None:
             return True
-        elif self.currentFilter.calcRemainingTime() < 10:
-            return True
         else:
-            return False
+            return self.currentFilter.shouldBeRetired()
     
     def create_new_filter(self, filterType):
         """
@@ -125,12 +122,13 @@ class SessionManager:
         The access list is a json list of laser authorized user disctionaries.
         Each user dictionary should contain an RFID key, the credential.
         Returns a LaserSession representing the user or none if no match
+        Throws FileNotFoundError if access list is not found
         """
         print('checking for credential: '+ credential +' in access list...')
         user = None
         accessList = self.load_access_list()
         for userDict in accessList:
-            #print(ususerDicter)
+            #print(userDict)
             if userDict['RFID'] == credential:
                 print('found!')
                 user = LaserSession(userDict, self.update_odometer())
@@ -156,42 +154,47 @@ class SessionManager:
         ACCESS_URL = os.environ['ACE_ACCESS_URL']
         EXPORT_TOKEN = os.environ['ACE_EXPORT_TOKEN']
 
+        success = False
         body = {'ace_export_token': EXPORT_TOKEN}
         headers = {'User-Agent': 'Wget/1.20.1 (linux-gnu)'}
         try:
-            response = requests.post(ACCESS_URL, body, headers=headers)
+            response = requests.post(ACCESS_URL, body, headers=headers, timeout=5)
+            userList = response.json()
+            if "error" in userList:
+                #{"error":"Token not sent."}
+                #print(response.content)
+                print("Access List "+response.text +" from "+ ACCESS_URL)
+            else:
+                success = True
+                print("Length of user list: ",len(userList))
+                data = response.content
+                with open(AUTHLIST_FILE, 'wb') as f:
+                    f.write(data)
         except requests.exceptions.Timeout:
             #TODO  Maybe set up for a retry, or continue in a retry loop
             print("Timeout connecting to URL")
-            sys.exit(1)
         except requests.exceptions.TooManyRedirects:
             #TODO Tell the user their URL was bad and try a different one
-            print("Invalid URL, exiting")
-            sys.exit(1)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            sys.exit(1)
-        #print(response.content)
-        #print(response.text)
-        userList = response.json()
-        #print("Length of user list: ",len(userList))
-        data = response.content
-        with open(AUTHLIST_FILE, 'wb') as f:
-            f.write(data)
-        return userList
+            print("Invalid URL")
+        except requests.exceptions.RequestException as ex:
+            print("Exception thrown in fetch_access_list:", ex)
+        return success
 
     def load_access_list(self):
         """
-        Loads the json list of authorized user from file
+        Loads the json list of authorized user from file.
+        Throws FileNotFoundError if AUTHLIST_FILE is not found.
         """
         with open(AUTHLIST_FILE, 'r') as json_file :
             authorized_rfids = json.load(json_file)   
             return authorized_rfids
 
     def get_auth_list_time(self):
+        """
+        Throws FileNotFoundError if AUTHLIST_FILE is not found.
+        """
         filetime = os.path.getmtime(AUTHLIST_FILE)
         return datetime.fromtimestamp(filetime )
-
 
     def postActivityListing(self, credential, authSuccess):
         print('posting ActivityListing for '+ credential, authSuccess)
@@ -208,7 +211,7 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         #TODO: wrap request in a try
-        resp = requests.post(reporting_URL, data, headers=headers)
+        resp = requests.post(reporting_URL, data, headers=headers, timeout=5)
         #print(resp.content)
         return resp
 
@@ -227,5 +230,5 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         #TODO: wrap request in a try
-        resp = requests.post(reporting_URL, data, headers=headers)
+        resp = requests.post(reporting_URL, data, headers=headers, timeout=5)
         print(resp.content)

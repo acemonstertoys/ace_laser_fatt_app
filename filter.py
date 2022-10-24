@@ -54,7 +54,7 @@ class Filter:
             'seconds_used': 0,
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.post(filter_API_URL, data, headers=headers)
+        resp = requests.post(filter_API_URL, data, headers=headers, timeout=5)
         #print(resp.content)
         jsonResp = resp.json()
         return cls(jsonResp['id'],filterType, odometerReading=odoValue)
@@ -68,7 +68,7 @@ class Filter:
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.get(filter_API_URL, headers=headers)
+        resp = requests.get(filter_API_URL, headers=headers, timeout=5)
         print(resp.content)
         filterJson = resp.json()
         filterList = list()
@@ -97,10 +97,25 @@ class Filter:
             data = {
                 'seconds_used': totalUsage,
             }
-            resp = requests.patch(filter_API_URL, data, headers=headers)
+            resp = requests.patch(filter_API_URL, data, headers=headers, timeout=5)
             print(resp.content)
             self.recordedUsage = totalUsage
             self.startOdometer = self.endOdometer
+
+    def retire(self):
+        """
+        Update is_retired flag on GC
+        """
+        print('retiring filter... id = %d' % (self.filterId))
+        # update GC
+        GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
+        filter_API_URL = os.environ['ACEGC_BASE_URL'] +"/filters/"+ str(self.filterId) +"/"
+        headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
+        data = {
+            'is_retired':True
+        }
+        resp = requests.patch(filter_API_URL, data, headers=headers, timeout=5)
+        print(resp.content)
 
     def calcRemainingTime(self):
         """
@@ -118,11 +133,15 @@ class Filter:
         print("calcRemainingTime: "+str(remainingTime))
         return remainingTime
 
+    def shouldBeRetired(self):
+        print('checking shouldBeRetired for Filter: '+ self.display_id())
+        return self.calcRemainingTime() < 10
+
     def filterSummary(self):
         """
-        Returns filter type and time remaining on filter
+        Returns filter summary and time remaining
         """
-        return self.filterType.stringValue(), self.calcRemainingTime()
+        return self.display_summary(), self.calcRemainingTime()
 
     def display_id(self):
         """
@@ -132,6 +151,12 @@ class Filter:
 
     def display_summary(self):
         """
-        Returns filter type and display_id() as a single string
+        Returns display_id() and filter type as a single string
         """
         return self.display_id() +" "+ self.filterType.stringValue()
+
+    def display_full_summary(self):
+        """
+        Returns display_id(), filter type and time remaining as a single string
+        """      
+        return self.display_id() +" "+ self.filterType.stringValue() +" ("+ str(round(self.calcRemainingTime())) +" Min.)"

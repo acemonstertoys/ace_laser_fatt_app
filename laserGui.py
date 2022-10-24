@@ -5,10 +5,7 @@ from guizero import App, Box, Picture, PushButton, Text, tkmixins
 from sessionManager import Auth_Result, SessionManager
 
 # This fixes button background color on Mac (and maybe elsewhere too)
-tkmixins.ColorMixin.BG_KEYS.append( "highlightbackground")
-
-# Allow overriding default install location for LaserGUI
-LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
+tkmixins.ColorMixin.BG_KEYS.append("highlightbackground")
 
 # Contant Color Values
 MAIN_COLOR = "#3636B2"
@@ -19,11 +16,18 @@ SIDE_COLOR = "#63BBE8"
 SIDE_ALERT_COLOR = "#E5008A"
 CHANGE_FILTER_COLOR = "#90CFEE"
 
-# Global Variables ----
+# Global Variables
 taggedFob = ""
 sessionManager = SessionManager()
 last_odo_reading = 0
 last_odo_time = datetime.now()
+
+# Environment Variables
+ACCESS_INTERVAL = int(os.environ.get('ACE_EXPORT_POLLING', '20'))   # minutes
+LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))        # minutes
+ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))       # seconds
+# Allow overriding default install location for LaserGUI
+LASERGUI_ROOT = os.environ.get( "LASERGUI_ROOT", "/home/pi/laserGui/" )
 
 # Functions -----------
 def updateTime():
@@ -32,23 +36,14 @@ def updateTime():
     nowStr = now.strftime(format)
     dateTimeText.value = nowStr
 
-def updateSyncTime():
-    syncTime =sessionManager.get_auth_list_time()
-    syncTimeText.value = "Last update: "+ syncTime.strftime( "%b %d, %I:%M %p")
-
-def checkAuthCurrent():
-    lastSyncTime =sessionManager.get_auth_list_time()
-    currentTime = datetime.now()
-    authListAge = currentTime - lastSyncTime
-    if (authListAge > timedelta( hours=1 )):
-        print ("Auth list stale, refetching")
-        sessionManager.fetch_access_list()
+def updateAccessList():
+    print("updateAccessList...")
+    if sessionManager.fetch_access_list() == False:
+        app.error("Network Error", "Hello. We are experiencing Network issues. Unfortunately, this means that we cannot use the laser. Please report issue to #laser or #general and we will work on a fix.")
 
 def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
-    if sessionManager.currentFilter is not None:
-        filterIDText.value = sessionManager.currentFilter.display_id()
     filterTimeText.value = str(round(data[1])) + ' Min.'
     if sessionManager.is_filter_change_needed():
         sideBarAlert.visible = True
@@ -64,7 +59,6 @@ def updateLaserOdometer():
     odoReading = sessionManager.update_odometer()
     if odoReading == last_odo_reading: # no activity
         # check length of session inactivity
-        LOGOUT_TIME = int(os.environ.get('LASER_LOGOUT_TIME', '40'))
         if datetime.now() > (last_odo_time + timedelta(minutes = LOGOUT_TIME)):
             invokeLogout()
     else: # we have activity
@@ -77,6 +71,7 @@ def updateLaserOdometer():
 def invokeLogout():
     print("invoking logout")
     sessionManager.logout()
+    hideCertified()
     setUpWaiting()
 
 def handleFobTag(event_data):
@@ -94,6 +89,10 @@ def handleFobTag(event_data):
             print("Invalid Fob Reading: "+taggedFob)
             result = Auth_Result.ERROR
             app.error("Fob Error", "Invalid Fob Reading: "+taggedFob)
+        except FileNotFoundError as fnf_err:
+            print("FileNotFoundError thrown in handleFobTag!", fnf_err)
+            result = Auth_Result.ERROR
+            app.error("Auth Error", "Authentication not retrieved. Please contact Team Laser.")
         except Exception as ex:
             print("Exception thrown in handleFobTag!", ex)
             result = Auth_Result.ERROR
@@ -101,14 +100,13 @@ def handleFobTag(event_data):
 
         if result == Auth_Result.NOT_AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, False))
-            setUpUncertified(fobHex)
-            sessionManager.fetch_access_list()
+            setUpUncertified()
         elif result == Auth_Result.AUTHENTICATED:
             print("ID: {} Authorized: {}".format(fobHex, True))
             last_odo_time = datetime.now()
             setUpCertified()
         elif result == Auth_Result.LOGGED_OUT:
-            checkAuthCurrent()
+            hideCertified()
             setUpWaiting()
         elif result == Auth_Result.ANOTHER_USER_LOGGED_IN:
             #print("Another user is logged in!!!")
@@ -143,22 +141,22 @@ def handleChangeFilter(filterObj):
     usedFilterBox.visible = False
     setUpCertified()
 
-def syncAuthList():
-    sessionManager.fetch_access_list()
-    updateSyncTime()
+def handleRetireFilter(filterObj):
+    print('handleRetireFilter... id='+ filterObj.display_id())
+    filterObj.retire()
+    setUpExistingFilter()
 
 def setUpWaiting():
     print("setting up Waiting...")
     app.bg = MAIN_COLOR
     filterStatusBox.bg = FILTER_COLOR
-    hideCertified()
     noCertBox.visible = False
     changeFilterBox.visible = False
     newFilterBox.visible = False
     usedFilterBox.visible = False
     welcomeBox.visible = True
 
-def setUpUncertified(userName):
+def setUpUncertified():
     #print("setting up Uncertified...")
     app.bg = UNAUTH_COLOR
     welcomeBox.visible = False
@@ -173,15 +171,16 @@ def setUpCertified():
     sideBar.visible = True
     welcomeBox.visible = False
     changeFilterBox.visible  = False
+    newFilterBox.visible = False
+    usedFilterBox.visible = False
     # Schedule call to read odometer based LASER_ODO_POLLING env var
-    ODO_INTERVAL = int(os.environ.get('LASER_ODO_POLLING', '15'))
     app.repeat((ODO_INTERVAL * 1000), updateLaserOdometer)
     updateLaserOdometer()
     odoBoxCostText.value = 'Session Cost: $'+ sessionManager.currentUser.calculate_session_cost()
     odoBox.visible = True
 
 def hideCertified():
-    #print("hiding Certified...")
+    print("hiding Certified...")
     app.cancel(updateLaserOdometer)
     sideBar.visible = False
     odoBox.visible = False
@@ -198,7 +197,7 @@ def setUpNewFilter():
     newFilterBox.visible = True
 
 def setUpExistingFilter():
-    #print("setting up Existing Filter...")
+    print("setting up Existing Filter...")
     changeFilterBox.visible = False
     usedFilterBox.visible = True
     # tear down filter buttons
@@ -206,12 +205,22 @@ def setUpExistingFilter():
         widget.destroy()
     # populate buttons representing list of existing filters
     filters = sessionManager.fetch_existing_filters()
+    row = 0
     if len(filters)==0:
         # no existing filters, add a button to create a new filter
-        PushButton(usedFilterBtns, command=setUpNewFilter, text="Create New Filter", width=25, pady=15).text_size = 18
+        PushButton(usedFilterBtns, grid=[0,row], command=setUpNewFilter, text="Create New Filter", width=24, pady=12).text_size = 18
+        row += 1
     else:
         for lsrFilter in filters:
-            PushButton(usedFilterBtns, args = [lsrFilter], command=handleChangeFilter, text=lsrFilter.display_summary(), width=25, pady=15).text_size = 18
+            if sessionManager.currentFilter != None and sessionManager.currentFilter.filterId == lsrFilter.filterId:
+                # do not include current filter in the list
+                continue
+            btnText = lsrFilter.display_full_summary()
+            PushButton(usedFilterBtns, grid=[0,row], args = [lsrFilter], command=handleChangeFilter, text=btnText, width=24, pady=12).text_size = 18
+            PushButton(usedFilterBtns, grid=[1,row], args = [lsrFilter], command=handleRetireFilter, text="Retire", width=8, pady=12).text_size = 18
+            row += 1
+    # add the cancel button
+    PushButton(usedFilterBtns, grid=[0,row], command=setUpCertified, text="Cancel", width=24, pady=12).text_size = 18
 
 # App --------------
 app = App(title="laser", width=800, height=480, bg=MAIN_COLOR)
@@ -246,11 +255,10 @@ updateTime()
 # Filter Status: always visible
 filterStatusBox = Box(app, layout="grid", width="fill", height=130, align="bottom") #, border=True)
 filterStatusBox.bg = FILTER_COLOR
-filterStatusBox.text_size=24
+filterStatusBox.text_size=22
 Box(filterStatusBox, grid=[0,0], width="fill", height=20) # spacer
-Text(filterStatusBox, text="Current Filter:", grid=[0,1], align="left")
-filterTypeText = Text(filterStatusBox, text="", grid=[2,1])
-filterIDText = Text(filterStatusBox, text="", grid=[1,1])
+Text(filterStatusBox, text="Current Filter: ", grid=[0,1], align="right")
+filterTypeText = Text(filterStatusBox, text="", grid=[1,1], align="left")
 Text(filterStatusBox, text="Filter Time Left: ", grid=[0,2], align="left")
 filterTimeText = Text(filterStatusBox, text="", grid=[1,2], align="left")
 updateFilterData()
@@ -260,15 +268,6 @@ welcomeBox = Box(app, align="top", width="fill")
 Box(welcomeBox, width="fill", height=60) # spacer
 Text(welcomeBox, text="Welcome", size=72)
 Text(welcomeBox, text="Tap your fob to begin", size=36)
-
-syncTimeText = Text(welcomeBox, text="Last update:", size=12 )
-updateSyncTime()
-
-# Optionally, show a force sync button
-if 'LASERGUI_SYNC_BUTTON' in os.environ:
-    btnSyncNow = PushButton( welcomeBox, command=syncAuthList, text="Sync Now", width=10, pady=12 )
-    btnSyncNow.highlightbackground = "blue"
-
 
 # UNCERTIFIED State
 noCertBox = Box(app, align="top", width="fill", visible=False)
@@ -302,26 +301,29 @@ Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpNewFilter, text="New Filter", width=25, pady=15).text_size = 18
 Box(changeFilterBox, width="fill", height=15) # spacer
 PushButton(changeFilterBox, command=setUpExistingFilter, text="Used Filter", width=25, pady=15).text_size = 18
+Box(changeFilterBox, width="fill", height=15) # spacer
+PushButton(changeFilterBox, command=setUpCertified, text="Cancel", width=25, pady=15).text_size = 18
 
 # New Filter
 newFilterBox = Box(app, align="top", width="fill", visible=False)
-Box(newFilterBox, width="fill", height=60) # spacer
-Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
 Box(newFilterBox, width="fill", height=30) # spacer
+Text(newFilterBox, text="What kind of filter are you putting in?", size=16)
+Box(newFilterBox, width="fill", height=15) # spacer
 PushButton(newFilterBox, command=handleNewOrganicsFilter, text="Green Filter for organics", width=25, pady=15).text_size = 18
 Box(newFilterBox, width="fill", height=15) # spacer
 PushButton(newFilterBox, command=handleNewSyntheticsFilter, text="White Filter for synthetics", width=25, pady=15).text_size = 18
+Box(newFilterBox, width="fill", height=15) # spacer
+PushButton(newFilterBox, command=setUpCertified, text="Cancel", width=25, pady=15).text_size = 18
 
 # Existing Filter
 usedFilterBox = Box(app, align="top", width="fill", visible=False)
-Box(usedFilterBox, width="fill", height=60) # spacer
+Box(usedFilterBox, width="fill", height=30) # spacer
 Text(usedFilterBox, text="Which used filter are you putting in?", size=16)
 Box(usedFilterBox, width="fill", height=15) # spacer
-usedFilterBtns = Box(usedFilterBox, width="fill", height="fill")
+usedFilterBtns = Box(usedFilterBox, layout="grid")
 
-
-# Check auth list is up to date
-checkAuthCurrent()
+# Update the access list on a schedule
+app.repeat((ACCESS_INTERVAL * 60000), updateAccessList)
 
 print("App ready to display...")
 app.display()
