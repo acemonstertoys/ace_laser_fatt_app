@@ -54,7 +54,7 @@ class Filter:
             'seconds_used': 0,
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.post(filter_API_URL, data, headers=headers)
+        resp = requests.post(filter_API_URL, data, headers=headers, timeout=5)
         #print(resp.content)
         jsonResp = resp.json()
         return cls(jsonResp['id'],filterType, odometerReading=odoValue)
@@ -68,7 +68,7 @@ class Filter:
         GC_ASSET_TOKEN = os.environ['ACEGC_ASSET_TOKEN']
         filter_API_URL = os.environ['ACEGC_BASE_URL'] + "/filters/"
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
-        resp = requests.get(filter_API_URL, headers=headers)
+        resp = requests.get(filter_API_URL, headers=headers, timeout=5)
         print(resp.content)
         filterJson = resp.json()
         filterList = list()
@@ -97,7 +97,7 @@ class Filter:
             data = {
                 'seconds_used': totalUsage,
             }
-            resp = requests.patch(filter_API_URL, data, headers=headers)
+            resp = requests.patch(filter_API_URL, data, headers=headers, timeout=5)
             print(resp.content)
             self.recordedUsage = totalUsage
             self.startOdometer = self.endOdometer
@@ -114,7 +114,7 @@ class Filter:
         data = {
             'is_retired':True
         }
-        resp = requests.patch(filter_API_URL, data, headers=headers)
+        resp = requests.patch(filter_API_URL, data, headers=headers, timeout=5)
         print(resp.content)
 
     def calcRemainingTime(self):

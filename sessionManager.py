@@ -158,7 +158,7 @@ class SessionManager:
         body = {'ace_export_token': EXPORT_TOKEN}
         headers = {'User-Agent': 'Wget/1.20.1 (linux-gnu)'}
         try:
-            response = requests.post(ACCESS_URL, body, headers=headers)
+            response = requests.post(ACCESS_URL, body, headers=headers, timeout=5)
             userList = response.json()
             if "error" in userList:
                 #{"error":"Token not sent."}
@@ -211,7 +211,7 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         #TODO: wrap request in a try
-        resp = requests.post(reporting_URL, data, headers=headers)
+        resp = requests.post(reporting_URL, data, headers=headers, timeout=5)
         #print(resp.content)
         return resp
 
@@ -230,5 +230,5 @@ class SessionManager:
         }
         headers = {'Authorization': "Token {}".format(GC_ASSET_TOKEN)}
         #TODO: wrap request in a try
-        resp = requests.post(reporting_URL, data, headers=headers)
+        resp = requests.post(reporting_URL, data, headers=headers, timeout=5)
         print(resp.content)
