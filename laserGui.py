@@ -38,9 +38,10 @@ def updateTime():
 
 def updateAccessList():
     print("updateAccessList...")
-    if sessionManager.fetch_access_list() == False:
-        app.error("Network Error", "Hello. We are experiencing Network issues. Unfortunately, this means that we cannot use the laser. Please report issue to #laser or #general and we will work on a fix.")
-
+    sessionManager.fetch_access_list()
+    # if sessionManager.fetch_access_list() == False:
+        # app.error("Network Error", "Hello. We are experiencing Network issues. Unfortunately, this means that we cannot use the laser. Please report issue to #laser or #general and we will work on a fix.")
+    
 def updateFilterData():
     data = sessionManager.currentFilterData()
     filterTypeText.value = data[0]
